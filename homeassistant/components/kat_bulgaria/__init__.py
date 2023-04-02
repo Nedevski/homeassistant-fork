@@ -1,1 +1,1 @@
-"""KAT Bulgaria - Check for driver fines."""
+"""KAT Bulgaria - checks if the user has an unpaid traffic violation."""

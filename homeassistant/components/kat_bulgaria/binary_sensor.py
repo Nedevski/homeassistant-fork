@@ -1,4 +1,4 @@
-"""Example integration using DataUpdateCoordinator."""
+"""Setup for a binary sensor from the configuration.yaml."""
 
 import logging
 from time import time
@@ -24,7 +24,7 @@ def setup_platform(
     add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None,
 ) -> None:
-    """Set up the alarm platform."""
+    """Set up the platform."""
 
     kat_sensor = KatGlobaSensor(config)
     kat_sensor.update()
@@ -32,17 +32,10 @@ def setup_platform(
 
 
 class KatGlobaSensor(BinarySensorEntity):
-    """An entity using CoordinatorEntity.
-
-    The CoordinatorEntity class provides:
-      should_poll
-      async_update
-      async_added_to_hass
-      available
-    """
+    """An entity that holds the properties for the KAT fines."""
 
     def __init__(self, config) -> None:
-        """Set up the KAT Globa Sensor."""
+        """Set up the KAT Sensor."""
         self.egn = config[PERSON_EGN]
         self.driver_license_number = config[DRIVING_LICENSE]
         self.person_name = None
@@ -58,10 +51,7 @@ class KatGlobaSensor(BinarySensorEntity):
             self._attr_unique_id = f"globi_{self.person_name}"
 
     def update(self) -> None:
-        """Fetch new state data for the sensor.
-
-        This is the only method that should fetch new data for Home Assistant.
-        """
+        """Fetch new state data for the sensor."""
 
         try:
             data = check_globa(self.egn, self.driver_license_number)
@@ -74,7 +64,7 @@ class KatGlobaSensor(BinarySensorEntity):
 
 
 def check_globa(egn: str, driver_license_number: str):
-    """Wololo."""
+    """Get the actual information from the government API."""
 
     try:
         url = "https://e-uslugi.mvr.bg/api/Obligations/AND?mode=1&obligedPersonIdent={egn}&drivingLicenceNumber={driver_license_number}".format(
@@ -86,7 +76,7 @@ def check_globa(egn: str, driver_license_number: str):
         res = get(url, headers=headers, timeout=10)
 
     except HTTPError as ex:
-        _LOGGER.error("Request to get the globi failed: %ex", str(ex))
+        _LOGGER.error("Request to get the driving fines failed: %ex", str(ex))
         return
 
     return res.json()
