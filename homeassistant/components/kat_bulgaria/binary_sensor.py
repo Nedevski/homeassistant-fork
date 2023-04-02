@@ -53,18 +53,15 @@ class KatGlobaSensor(BinarySensorEntity):
     def update(self) -> None:
         """Fetch new state data for the sensor."""
 
-        try:
-            data = check_globa(self.egn, self.driver_license_number)
-        except HTTPError as ex:
-            _LOGGER.error(ex)
-            return
+        data = get_kat_fines(self.egn, self.driver_license_number)
 
-        self._attr_is_on = data["hasNonHandedSlip"]
-        self._attr_extra_state_attributes = {"last_updated": time()}
+        if data is not None:
+            self._attr_is_on = data["hasNonHandedSlip"]
+            self._attr_extra_state_attributes = {"last_updated": time()}
 
 
-def check_globa(egn: str, driver_license_number: str):
-    """Get the actual information from the government API."""
+def get_kat_fines(egn: str, driver_license_number: str):
+    """Call the public BG government API to check if the person has fines."""
 
     try:
         url = "https://e-uslugi.mvr.bg/api/Obligations/AND?mode=1&obligedPersonIdent={egn}&drivingLicenceNumber={driver_license_number}".format(
@@ -76,7 +73,10 @@ def check_globa(egn: str, driver_license_number: str):
         res = get(url, headers=headers, timeout=10)
 
     except HTTPError as ex:
-        _LOGGER.error("Request to get the driving fines failed: %ex", str(ex))
-        return
+        _LOGGER.warning("KAT Bulgaria HTTP call failed: %e", str(ex))
+        return None
+    except TimeoutError as ex:
+        _LOGGER.info("KAT Bulgaria HTTP call TIMEOUT: %e", str(ex))
+        return None
 
     return res.json()
