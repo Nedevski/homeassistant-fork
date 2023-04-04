@@ -3,7 +3,7 @@
 import logging
 from time import time
 
-from kat_bulgaria.obligations import KatError, KatPersonDetails, has_obligations
+from kat_bulgaria.obligations import KatError, KatPersonDetails, check_obligations
 import voluptuous as vol
 
 from homeassistant.components.binary_sensor import PLATFORM_SCHEMA, BinarySensorEntity
@@ -74,11 +74,11 @@ class KatGlobaSensor(BinarySensorEntity):
         """Fetch new state data for the sensor."""
 
         try:
-            data = has_obligations(self.person)
+            data = check_obligations(self.person)
         except KatError as err:
             _LOGGER.info(str(err))
             return
 
         if data is not None:
-            self._attr_is_on = data
+            self._attr_is_on = data.has_obligations
             self._attr_extra_state_attributes = {"last_updated": time()}
