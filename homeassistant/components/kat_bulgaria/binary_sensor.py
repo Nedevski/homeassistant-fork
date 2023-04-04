@@ -25,10 +25,6 @@ CONF_PERSON_EGN = "egn"
 CONF_DRIVING_LICENSE = "driver_license_number"
 CONF_PERSON_NAME = "person_name"
 
-PERSON_NAME = "person_name"
-PERSON_EGN = "egn"
-DRIVING_LICENSE = "driver_license_number"
-
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_PERSON_EGN): vol.All(cv.string, vol.Match(REGEX_EGN)),
@@ -58,18 +54,18 @@ class KatGlobaSensor(BinarySensorEntity):
 
     def __init__(self, config) -> None:
         """Set up the KAT Sensor."""
-        self.egn = config[PERSON_EGN]
-        self.driver_license_number = config[DRIVING_LICENSE]
+        self.egn = config[CONF_PERSON_EGN]
+        self.driver_license_number = config[CONF_DRIVING_LICENSE]
         self.person_name = None
 
         self.person = KatPersonDetails(self.egn, self.driver_license_number)
 
-        if PERSON_NAME in config:
-            self.person_name = config[PERSON_NAME]
+        if CONF_PERSON_NAME in config:
+            self.person_name = config[CONF_PERSON_NAME]
 
         if self.person_name is None:
-            self._attr_name = f"Globi {self.egn}"
-            self._attr_unique_id = f"globi_{self.egn}"
+            self._attr_name = f"Globi {self.driver_license_number}"
+            self._attr_unique_id = f"globi_{self.driver_license_number}"
         else:
             self._attr_name = f"Globi {self.person_name}"
             self._attr_unique_id = f"globi_{self.person_name}"
