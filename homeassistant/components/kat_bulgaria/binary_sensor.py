@@ -3,7 +3,13 @@
 import logging
 from time import time
 
-from kat_bulgaria.obligations import KatError, KatPersonDetails, check_obligations
+from kat_bulgaria.obligations import (
+    REGEX_DRIVING_LICENSE,
+    REGEX_EGN,
+    KatError,
+    KatPersonDetails,
+    check_obligations,
+)
 import voluptuous as vol
 
 from homeassistant.components.binary_sensor import PLATFORM_SCHEMA, BinarySensorEntity
@@ -25,11 +31,9 @@ DRIVING_LICENSE = "driver_license_number"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Required(CONF_PERSON_EGN): vol.All(
-            cv.string, vol.Match(r"^[0-9]{2}[0,1,2,4][0-9][0-9]{2}[0-9]{4}$")
-        ),
+        vol.Required(CONF_PERSON_EGN): vol.All(cv.string, vol.Match(REGEX_EGN)),
         vol.Required(CONF_DRIVING_LICENSE): vol.All(
-            cv.string, vol.Match(r"^[0-9]{9}$")
+            cv.string, vol.Match(REGEX_DRIVING_LICENSE)
         ),
         vol.Optional(CONF_PERSON_NAME): cv.string,
     }
