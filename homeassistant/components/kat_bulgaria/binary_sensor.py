@@ -3,19 +3,37 @@
 import logging
 from time import time
 
-from requests import HTTPError, get
+from kat_bulgaria.obligations import KatError, KatPersonDetails, has_obligations
+import voluptuous as vol
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import PLATFORM_SCHEMA, BinarySensorEntity
 from homeassistant.core import HomeAssistant
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 _LOGGER = logging.getLogger(__name__)
 DOMAIN = "kat_bulgaria"
 
+CONF_PERSON_EGN = "egn"
+CONF_DRIVING_LICENSE = "driver_license_number"
+CONF_PERSON_NAME = "person_name"
+
 PERSON_NAME = "person_name"
 PERSON_EGN = "egn"
 DRIVING_LICENSE = "driver_license_number"
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+    {
+        vol.Required(CONF_PERSON_EGN): vol.All(
+            cv.string, vol.Match(r"^[0-9]{2}[0,1,2,4][0-9][0-9]{2}[0-9]{4}$")
+        ),
+        vol.Required(CONF_DRIVING_LICENSE): vol.All(
+            cv.string, vol.Match(r"^[0-9]{9}$")
+        ),
+        vol.Optional(CONF_PERSON_NAME): cv.string,
+    }
+)
 
 
 def setup_platform(
@@ -40,6 +58,8 @@ class KatGlobaSensor(BinarySensorEntity):
         self.driver_license_number = config[DRIVING_LICENSE]
         self.person_name = None
 
+        self.person = KatPersonDetails(self.egn, self.driver_license_number)
+
         if PERSON_NAME in config:
             self.person_name = config[PERSON_NAME]
 
@@ -53,30 +73,12 @@ class KatGlobaSensor(BinarySensorEntity):
     def update(self) -> None:
         """Fetch new state data for the sensor."""
 
-        data = get_kat_fines(self.egn, self.driver_license_number)
+        try:
+            data = has_obligations(self.person)
+        except KatError as err:
+            _LOGGER.info(str(err))
+            return
 
         if data is not None:
-            self._attr_is_on = data["hasNonHandedSlip"]
+            self._attr_is_on = data
             self._attr_extra_state_attributes = {"last_updated": time()}
-
-
-def get_kat_fines(egn: str, driver_license_number: str):
-    """Call the public BG government API to check if the person has fines."""
-
-    try:
-        url = "https://e-uslugi.mvr.bg/api/Obligations/AND?mode=1&obligedPersonIdent={egn}&drivingLicenceNumber={driver_license_number}".format(
-            egn=egn, driver_license_number=driver_license_number
-        )
-        headers = {
-            "content-type": "application/json",
-        }
-        res = get(url, headers=headers, timeout=10)
-
-    except HTTPError as ex:
-        _LOGGER.warning("KAT Bulgaria HTTP call failed: %e", str(ex))
-        return None
-    except TimeoutError as ex:
-        _LOGGER.info("KAT Bulgaria HTTP call TIMEOUT: %e", str(ex))
-        return None
-
-    return res.json()
