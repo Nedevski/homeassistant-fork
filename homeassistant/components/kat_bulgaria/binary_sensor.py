@@ -30,8 +30,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "kat_bulgaria"
-# SCAN_INTERVAL = timedelta(minutes=20)
-SCAN_INTERVAL = timedelta(seconds=30)
+
+SCAN_INTERVAL = timedelta(minutes=20)
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_PERSON_EGN): vol.All(cv.string, vol.Match(REGEX_EGN)),
