@@ -1,12 +1,13 @@
 """Setup for a binary sensor from the configuration.yaml."""
 
+from datetime import datetime, timedelta
 import logging
-from time import time
 
 from kat_bulgaria.obligations import (
     REGEX_DRIVING_LICENSE,
     REGEX_EGN,
     KatError,
+    KatFatalError,
     KatPersonDetails,
     check_obligations,
 )
@@ -18,13 +19,19 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
+from .const import (
+    BINARY_SENSOR_ENTITY_PREFIX,
+    BINARY_SENSOR_NAME_PREFIX,
+    CONF_DRIVING_LICENSE,
+    CONF_PERSON_EGN,
+    CONF_PERSON_NAME,
+)
+
 _LOGGER = logging.getLogger(__name__)
+
 DOMAIN = "kat_bulgaria"
-
-CONF_PERSON_EGN = "egn"
-CONF_DRIVING_LICENSE = "driver_license_number"
-CONF_PERSON_NAME = "person_name"
-
+# SCAN_INTERVAL = timedelta(minutes=20)
+SCAN_INTERVAL = timedelta(seconds=30)
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_PERSON_EGN): vol.All(cv.string, vol.Match(REGEX_EGN)),
@@ -45,8 +52,7 @@ def setup_platform(
     """Set up the platform."""
 
     kat_sensor = KatGlobaSensor(config)
-    kat_sensor.update()
-    add_entities([kat_sensor])
+    add_entities([kat_sensor], update_before_add=True)
 
 
 class KatGlobaSensor(BinarySensorEntity):
@@ -60,25 +66,33 @@ class KatGlobaSensor(BinarySensorEntity):
 
         self.person = KatPersonDetails(self.egn, self.driver_license_number)
 
+        # The name and entity identifier, defaults to driver license number
+        identifier = self.driver_license_number
+
+        # If a name is provided, use that in the name and in the entity
         if CONF_PERSON_NAME in config:
             self.person_name = config[CONF_PERSON_NAME]
+            identifier = self.person_name
 
-        if self.person_name is None:
-            self._attr_name = f"Globi {self.driver_license_number}"
-            self._attr_unique_id = f"globi_{self.driver_license_number}"
-        else:
-            self._attr_name = f"Globi {self.person_name}"
-            self._attr_unique_id = f"globi_{self.person_name}"
+        # Set the sensor name and entity_id
+        self._attr_name = f"{BINARY_SENSOR_NAME_PREFIX}{identifier}"
+        self._attr_unique_id = f"{BINARY_SENSOR_ENTITY_PREFIX}{identifier}"
 
     def update(self) -> None:
         """Fetch new state data for the sensor."""
 
         try:
-            data = check_obligations(self.person)
+            data = check_obligations(self.person, request_timeout=5)
         except KatError as err:
             _LOGGER.info(str(err))
             return
+        except (ValueError, KatFatalError) as err:
+            _LOGGER.error(str(err))
+            return
+        # except ReadTimeoutError as err:
 
         if data is not None:
             self._attr_is_on = data.has_obligations
-            self._attr_extra_state_attributes = {"last_updated": time()}
+            self._attr_extra_state_attributes = {
+                "last_updated": datetime.now().isoformat()
+            }
