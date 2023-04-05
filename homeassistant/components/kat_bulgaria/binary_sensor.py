@@ -51,11 +51,10 @@ def setup_platform(
 ) -> None:
     """Set up the platform."""
 
-    kat_sensor = KatGlobaSensor(config)
-    add_entities([kat_sensor], update_before_add=True)
+    add_entities([KatObligationSensor(config)], update_before_add=True)
 
 
-class KatGlobaSensor(BinarySensorEntity):
+class KatObligationSensor(BinarySensorEntity):
     """An entity that holds the properties for the KAT fines."""
 
     def __init__(self, config) -> None:
