@@ -88,7 +88,6 @@ class KatObligationSensor(BinarySensorEntity):
         except (ValueError, KatFatalError) as err:
             _LOGGER.error(str(err))
             return
-        # except ReadTimeoutError as err:
 
         if data is not None:
             self._attr_is_on = data.has_obligations
