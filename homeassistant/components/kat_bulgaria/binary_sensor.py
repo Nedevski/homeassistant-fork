@@ -1,4 +1,4 @@
-"""Setup for a binary sensor from the configuration.yaml."""
+"""Setup for the binary sensor from the configuration.yaml."""
 
 from datetime import datetime, timedelta
 import logging
