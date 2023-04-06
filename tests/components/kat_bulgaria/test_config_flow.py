@@ -233,6 +233,3 @@ async def test_form_already_configured_check_not_existing(
             CONF_DRIVING_LICENSE: "123456879",
         }
         assert len(mock_setup_entry.mock_calls) == 1
-
-
-# pytest ./tests/components/kat_bulgaria/ --cov=homeassistant.components.kat_bulgaria --cov-report term-missing -vv
