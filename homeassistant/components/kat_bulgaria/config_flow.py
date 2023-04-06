@@ -58,7 +58,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="invalid_config")
 
             if verify.error_type in (
-                KatErrorType.VALIDATION_ERROR,
+                KatErrorType.API_UNAVAILABLE,
                 KatErrorType.TIMEOUT,
             ):
                 return self.async_abort(reason="cannot_connect")
