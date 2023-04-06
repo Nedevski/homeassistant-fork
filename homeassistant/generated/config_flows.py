@@ -212,6 +212,7 @@ FLOWS = {
         "juicenet",
         "justnimbus",
         "kaleidescape",
+        "kat_bulgaria",
         "keenetic_ndms2",
         "kegtron",
         "keymitt_ble",
