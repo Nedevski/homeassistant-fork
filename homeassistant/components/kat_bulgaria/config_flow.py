@@ -8,12 +8,10 @@ from kat_bulgaria.obligations import KatApi, KatErrorType
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .common import generate_entity_name
 from .const import CONF_DRIVING_LICENSE, CONF_PERSON_EGN, CONF_PERSON_NAME, DOMAIN
-from .options_flow import OptionsFlowHandler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,15 +28,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for kat_bulgaria."""
 
     VERSION = 1
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> OptionsFlowHandler:
-        """Get the options flow for KAT Bulgaria."""
-
-        return OptionsFlowHandler(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
