@@ -10,9 +10,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .common import generate_entity_name
 from .const import (
     BINARY_SENSOR_ENTITY_PREFIX,
-    BINARY_SENSOR_NAME_PREFIX,
     CONF_DRIVING_LICENSE,
     CONF_PERSON_EGN,
     CONF_PERSON_NAME,
@@ -30,7 +30,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the platform from config_entry."""
 
-    person_name: str = str(entry.data.get(CONF_PERSON_NAME)).lower().capitalize()
+    person_name: str = str(entry.data.get(CONF_PERSON_NAME))
     person_egn: str = str(entry.data.get(CONF_PERSON_EGN))
     license_number: str = str(entry.data.get(CONF_DRIVING_LICENSE))
 
@@ -49,7 +49,7 @@ class KatObligationsSensor(BinarySensorEntity):
 
         self.api = api
 
-        self._attr_name = f"{BINARY_SENSOR_NAME_PREFIX}{name}"
+        self._attr_name = generate_entity_name(name)
         self._attr_unique_id = f"{BINARY_SENSOR_ENTITY_PREFIX}{name}"
 
         self.egn = egn

@@ -8,19 +8,16 @@ from kat_bulgaria.obligations import KatApi, KatErrorType
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import (
-    BINARY_SENSOR_NAME_PREFIX,
-    CONF_DRIVING_LICENSE,
-    CONF_PERSON_EGN,
-    CONF_PERSON_NAME,
-    DOMAIN,
-)
+from .common import generate_entity_name
+from .const import CONF_DRIVING_LICENSE, CONF_PERSON_EGN, CONF_PERSON_NAME, DOMAIN
+from .options_flow import OptionsFlowHandler
 
 _LOGGER = logging.getLogger(__name__)
 
-STEP_USER_DATA_SCHEMA = vol.Schema(
+CONFIG_FLOW_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PERSON_NAME): str,
         vol.Required(CONF_PERSON_EGN): str,
@@ -29,10 +26,19 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-class SimpleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for kat_bulgaria."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> OptionsFlowHandler:
+        """Get the options flow for KAT Bulgaria."""
+
+        return OptionsFlowHandler(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -42,7 +48,7 @@ class SimpleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # If no Input
         if user_input is None:
             return self.async_show_form(
-                step_id="user", data_schema=STEP_USER_DATA_SCHEMA
+                step_id="user", data_schema=CONFIG_FLOW_DATA_SCHEMA
             )
 
         # Init user input values
@@ -71,6 +77,6 @@ class SimpleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="unknown")
 
         # All good, set up entry
-        title = f"{BINARY_SENSOR_NAME_PREFIX}{user_name.lower().capitalize()}"
+        title = generate_entity_name(user_name)
 
         return self.async_create_entry(title=title, data=user_input)
