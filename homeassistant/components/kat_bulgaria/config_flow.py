@@ -20,17 +20,6 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-
-# STEP_USER_DATA_SCHEMA = vol.Schema(
-#     {
-#         vol.Required(CONF_PERSON_NAME): str,
-#         vol.Required(CONF_PERSON_EGN): vol.All(str, vol.Match(REGEX_EGN)),
-#         vol.Required(CONF_DRIVING_LICENSE): vol.All(
-#             str, vol.Match(REGEX_DRIVING_LICENSE)
-#         ),
-#     }
-# )
-
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PERSON_NAME): str,
@@ -82,6 +71,6 @@ class SimpleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="unknown")
 
         # All good, set up entry
-        title = f"{BINARY_SENSOR_NAME_PREFIX}{user_name}"
+        title = f"{BINARY_SENSOR_NAME_PREFIX}{user_name.lower().capitalize()}"
 
         return self.async_create_entry(title=title, data=user_input)

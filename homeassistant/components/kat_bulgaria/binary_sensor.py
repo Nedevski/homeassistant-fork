@@ -19,7 +19,7 @@ from .const import (
     DOMAIN,
 )
 
-SCAN_INTERVAL = timedelta(seconds=5)
+SCAN_INTERVAL = timedelta(minutes=20)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -30,7 +30,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the platform from config_entry."""
 
-    person_name: str = str(entry.data.get(CONF_PERSON_NAME))
+    person_name: str = str(entry.data.get(CONF_PERSON_NAME)).lower().capitalize()
     person_egn: str = str(entry.data.get(CONF_PERSON_EGN))
     license_number: str = str(entry.data.get(CONF_DRIVING_LICENSE))
 
