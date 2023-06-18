@@ -15,15 +15,13 @@ from homeassistant.components.kat_bulgaria.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from .const import KAT_API_VERIFY_CREDENTIALS
-
-EGN_SAMPLE = "0011223344"
-EGN_SAMPLE_TWO = "1111119999"
-EGN_SAMPLE_INVALID = "123"
-
-LICENSE_SAMPLE = "123456789"
-LICENSE_SAMPLE_TWO = "987654321"
-LICENSE_SAMPLE_INVALID = "321"
+from .const import (
+    EGN_SAMPLE,
+    EGN_SAMPLE_TWO,
+    KAT_API_VERIFY_CREDENTIALS,
+    LICENSE_SAMPLE,
+    LICENSE_SAMPLE_TWO,
+)
 
 
 async def test_form(hass: HomeAssistant) -> None:
