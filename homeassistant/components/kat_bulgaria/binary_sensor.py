@@ -24,9 +24,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up the platform from config_entry."""
 
-    person_name: str = str(entry.data[CONF_PERSON_NAME])
-    person_egn: str = str(entry.data[CONF_PERSON_EGN])
-    license_number: str = str(entry.data[CONF_DRIVING_LICENSE])
+    person_name: str = entry.data[CONF_PERSON_NAME]
+    person_egn: str = entry.data[CONF_PERSON_EGN]
+    license_number: str = entry.data[CONF_DRIVING_LICENSE]
 
     api: KatApi = hass.data[DOMAIN][entry.entry_id]
 
