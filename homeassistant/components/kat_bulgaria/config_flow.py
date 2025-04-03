@@ -10,16 +10,53 @@ import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 
-from .const import CONF_DRIVING_LICENSE, CONF_PERSON_EGN, CONF_PERSON_NAME, DOMAIN
+from .const import (
+    CONF_BULSTAT,
+    CONF_DOCUMENT_NUMBER,
+    CONF_DRIVING_LICENSE,
+    CONF_PERSON_EGN,
+    CONF_PERSON_NAME,
+    CONF_PERSON_TYPE,
+    DOMAIN,
+    PersonType,
+)
 from .kat_client import KatClient
 
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_FLOW_DATA_SCHEMA = vol.Schema(
     {
+        vol.Optional(CONF_PERSON_TYPE, default=PersonType.INDIVIDUAL): vol.In(
+            [PersonType.INDIVIDUAL, PersonType.BUSINESS]
+        ),
         vol.Required(CONF_PERSON_NAME): str,
         vol.Required(CONF_PERSON_EGN): str,
         vol.Required(CONF_DRIVING_LICENSE): str,
+    }
+)
+
+SCHEMA_START = vol.Schema(
+    {
+        vol.Optional(CONF_PERSON_TYPE, default=PersonType.INDIVIDUAL): vol.In(
+            [PersonType.INDIVIDUAL, PersonType.BUSINESS]
+        ),
+    }
+)
+
+SCHEMA_PERSON = vol.Schema(
+    {
+        vol.Required(CONF_PERSON_NAME): str,
+        vol.Required(CONF_PERSON_EGN): str,
+        vol.Required(CONF_DOCUMENT_NUMBER): str,
+    }
+)
+
+SCHEMA_BUSINESS = vol.Schema(
+    {
+        vol.Required(CONF_PERSON_NAME): str,
+        vol.Required(CONF_PERSON_EGN): str,
+        vol.Required(CONF_DOCUMENT_NUMBER): str,
+        vol.Required(CONF_BULSTAT): str,
     }
 )
 
@@ -27,34 +64,74 @@ CONFIG_FLOW_DATA_SCHEMA = vol.Schema(
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for kat_bulgaria."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
 
-        errors: dict[str, str] = {}
-
-        # If no Input
+        # If no input, show default form
         if user_input is None:
+            return self.async_show_form(step_id="user", data_schema=SCHEMA_START)
+
+        if len(user_input) == 1:
+            person_type = user_input[CONF_PERSON_TYPE]
+            if person_type == PersonType.INDIVIDUAL:
+                return self.async_show_form(step_id="user", data_schema=SCHEMA_PERSON)
+            if person_type == PersonType.BUSINESS:
+                return self.async_show_form(step_id="user", data_schema=SCHEMA_BUSINESS)
+
+            # If we reach here, something went wrong.
+            _LOGGER.error("Invalid person type: %s", person_type)
+
+            # Show the form again with an error
             return self.async_show_form(
-                step_id="user", data_schema=CONFIG_FLOW_DATA_SCHEMA
+                step_id="user",
+                data_schema=SCHEMA_START,
+                errors={"base": "invalid_type"},
             )
 
+        if len(user_input) == 3:
+            return await self.async_step_person(user_input)
+
+        if len(user_input) == 4:
+            return await self.async_step_business(user_input)
+
+        # Show the form again with an error
+        return self.async_show_form(
+            step_id="user",
+            data_schema=SCHEMA_START,
+            errors={"base": "invalid_type"},
+        )
+
+    async def async_step_person(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+        """Handle the initial step."""
+
+        errors: dict[str, str] = {}
+
         # Init user input values & init KatClient
+        user_input[CONF_PERSON_TYPE] = PersonType.INDIVIDUAL
+
         user_name = user_input[CONF_PERSON_NAME]
         user_egn = user_input[CONF_PERSON_EGN]
         user_license_number = user_input[CONF_DRIVING_LICENSE]
 
         # Verify user input
         try:
-            kat_client = KatClient(self.hass, user_name, user_egn, user_license_number)
+            kat_client = KatClient(
+                self.hass,
+                PersonType.INDIVIDUAL,
+                user_name,
+                user_egn,
+                user_license_number,
+                None,
+            )
             await kat_client.validate_credentials()
         except KatError as err:
             if err.error_type in (
                 KatErrorType.VALIDATION_EGN_INVALID,
-                KatErrorType.VALIDATION_LICENSE_INVALID,
+                KatErrorType.VALIDATION_ID_DOCUMENT_INVALID,
                 KatErrorType.VALIDATION_USER_NOT_FOUND_ONLINE,
             ):
                 _LOGGER.warning(
@@ -74,6 +151,62 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         # If this person (EGN) is already configured, abort
         await self.async_set_unique_id(user_egn)
+        self._abort_if_unique_id_configured()
+
+        if errors:
+            return self.async_show_form(
+                step_id="user", data_schema=CONFIG_FLOW_DATA_SCHEMA, errors=errors
+            )
+
+        return self.async_create_entry(title=f"KAT - {user_name}", data=user_input)
+
+    async def async_step_business(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+        """Handle the initial step."""
+
+        errors: dict[str, str] = {}
+
+        # Init user input values & init KatClient
+        user_input[CONF_PERSON_TYPE] = PersonType.BUSINESS
+
+        user_name = user_input[CONF_PERSON_NAME]
+        user_egn = user_input[CONF_PERSON_EGN]
+        user_gov_id_number = user_input[CONF_DOCUMENT_NUMBER]
+        user_bulstat = user_input[CONF_BULSTAT]
+
+        # Verify user input
+        try:
+            kat_client = KatClient(
+                self.hass,
+                PersonType.BUSINESS,
+                user_name,
+                user_egn,
+                user_gov_id_number,
+                user_bulstat,
+            )
+            await kat_client.validate_credentials()
+        except KatError as err:
+            if err.error_type in (
+                KatErrorType.VALIDATION_EGN_INVALID,
+                KatErrorType.VALIDATION_ID_DOCUMENT_INVALID,
+                KatErrorType.VALIDATION_USER_NOT_FOUND_ONLINE,
+            ):
+                _LOGGER.warning(
+                    "Invalid credentials, unable to setup: %s", err.error_type
+                )
+                errors["base"] = "invalid_config"
+
+            if err.error_type in (
+                KatErrorType.API_TIMEOUT,
+                KatErrorType.API_ERROR_READING_DATA,
+                KatErrorType.API_INVALID_SCHEMA,
+                KatErrorType.API_TOO_MANY_REQUESTS,
+                KatErrorType.API_UNKNOWN_ERROR,
+            ):
+                _LOGGER.warning("KAT API down, unable to setup: %s", err.error_type)
+                errors["base"] = "cannot_connect"
+
+        # If this person (EGN) is already configured, abort
+        await self.async_set_unique_id(user_bulstat)
         self._abort_if_unique_id_configured()
 
         if errors:
