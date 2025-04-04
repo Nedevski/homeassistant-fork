@@ -23,17 +23,6 @@ from .kat_client import KatClient
 
 _LOGGER = logging.getLogger(__name__)
 
-# CONFIG_FLOW_DATA_SCHEMA = vol.Schema(
-#     {
-#         vol.Optional(CONF_PERSON_TYPE, default=PersonType.INDIVIDUAL): vol.In(
-#             [PersonType.INDIVIDUAL, PersonType.BUSINESS]
-#         ),
-#         vol.Required(CONF_PERSON_NAME): str,
-#         vol.Required(CONF_PERSON_EGN): str,
-#         vol.Required(CONF_DRIVING_LICENSE): str,
-#     }
-# )
-
 SCHEMA_START = vol.Schema(
     {
         vol.Optional(CONF_PERSON_TYPE, default=PersonType.INDIVIDUAL): vol.In(
@@ -183,7 +172,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 vol.Required(
                     CONF_DOCUMENT_NUMBER,
                     default=reconfigure_entry.data.get(CONF_DOCUMENT_NUMBER, ""),
-                ): str  # cv.matches_regex(r"[a-z]{2,3}-[A-Z]{2}|")
+                ): str
             }
         )
 
