@@ -1888,6 +1888,7 @@ pycoolmasternet-async==0.2.2
 pycountry==24.6.1
 
 # homeassistant.components.microsoft
+# homeassistant.components.microsoft_tts
 pycsspeechtts==1.0.8
 
 # homeassistant.components.cups
