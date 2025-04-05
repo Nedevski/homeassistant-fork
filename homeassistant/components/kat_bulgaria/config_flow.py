@@ -9,6 +9,7 @@ from kat_bulgaria.errors import KatError, KatErrorType
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 from .const import (
     CONF_BULSTAT,
@@ -25,13 +26,16 @@ _LOGGER = logging.getLogger(__name__)
 
 SCHEMA_START = vol.Schema(
     {
-        vol.Optional(CONF_PERSON_TYPE, default=PersonType.INDIVIDUAL): vol.In(
-            [PersonType.INDIVIDUAL, PersonType.BUSINESS]
-        ),
+        vol.Required(CONF_PERSON_TYPE, default=PersonType.INDIVIDUAL): SelectSelector(
+            SelectSelectorConfig(
+                options=[PersonType.INDIVIDUAL, PersonType.BUSINESS],
+                translation_key=CONF_PERSON_TYPE,
+            )
+        )
     }
 )
 
-SCHEMA_PERSON = vol.Schema(
+SCHEMA_INDIVIDUAL = vol.Schema(
     {
         vol.Required(CONF_PERSON_NAME): str,
         vol.Required(CONF_PERSON_EGN): str,
@@ -86,7 +90,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
 
         if len(user_input) == 1:
-            return self.async_show_form(step_id="individual", data_schema=SCHEMA_PERSON)
+            return self.async_show_form(
+                step_id="individual", data_schema=SCHEMA_INDIVIDUAL
+            )
 
         # Init user input values & init KatClient
         # user_input[CONF_PERSON_TYPE] = PersonType.INDIVIDUAL
@@ -108,7 +114,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if errors:
             return self.async_show_form(
-                step_id="user", data_schema=SCHEMA_PERSON, errors=errors
+                step_id="individual", data_schema=SCHEMA_INDIVIDUAL, errors=errors
             )
 
         # If this person (EGN) is already configured, abort
@@ -144,7 +150,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if errors:
             return self.async_show_form(
-                step_id="user", data_schema=SCHEMA_BUSINESS, errors=errors
+                step_id="business", data_schema=SCHEMA_BUSINESS, errors=errors
             )
 
         # If this person (EGN) is already configured, abort
