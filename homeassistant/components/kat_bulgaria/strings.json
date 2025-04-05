@@ -2,10 +2,28 @@
   "config": {
     "step": {
       "user": {
+        "title": "Configuration",
+        "data": {
+          "person_type": "Are you an individual or a business?",
+          "individual": "Individual2",
+          "business": "Business2"
+        }
+      },
+      "individual": {
+        "title": "Configuration - Individual",
         "data": {
           "person_name": "Person name",
           "egn": "Unified Civil Number (EGN)",
-          "driving_license_number": "Driving license number"
+          "document_number": "Driving License number"
+        }
+      },
+      "business": {
+        "title": "Configuration - Business",
+        "data": {
+          "person_name": "Person name",
+          "egn": "Unified Civil Number (EGN)",
+          "document_number": "Government ID number",
+          "business_bulstat": "BULSTAT"
         }
       }
     },

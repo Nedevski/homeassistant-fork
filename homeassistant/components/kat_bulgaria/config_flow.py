@@ -63,28 +63,15 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(step_id="user", data_schema=SCHEMA_START)
 
-        if len(user_input) == 1:
-            person_type = user_input[CONF_PERSON_TYPE]
-            if person_type == PersonType.INDIVIDUAL:
-                return self.async_show_form(step_id="user", data_schema=SCHEMA_PERSON)
-            if person_type == PersonType.BUSINESS:
-                return self.async_show_form(step_id="user", data_schema=SCHEMA_BUSINESS)
+        person_type = user_input[CONF_PERSON_TYPE]
 
-            # If we reach here, something went wrong.
-            _LOGGER.error("Invalid person type: %s", person_type)
-
-            # Show the form again with an error
-            return self.async_show_form(
-                step_id="user",
-                data_schema=SCHEMA_START,
-                errors={"base": "invalid_type"},
-            )
-
-        if len(user_input) == 3:
-            return await self.async_step_person(user_input)
-
-        if len(user_input) == 4:
+        if person_type == PersonType.INDIVIDUAL:
+            return await self.async_step_individual(user_input)
+        if person_type == PersonType.BUSINESS:
             return await self.async_step_business(user_input)
+
+        # If we reach here, something went wrong.
+        _LOGGER.error("Invalid person type: %s", person_type)
 
         # Show the form again with an error
         return self.async_show_form(
@@ -93,11 +80,16 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             errors={"base": "invalid_type"},
         )
 
-    async def async_step_person(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+    async def async_step_individual(
+        self, user_input: dict[str, Any]
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
 
+        if len(user_input) == 1:
+            return self.async_show_form(step_id="individual", data_schema=SCHEMA_PERSON)
+
         # Init user input values & init KatClient
-        user_input[CONF_PERSON_TYPE] = PersonType.INDIVIDUAL
+        # user_input[CONF_PERSON_TYPE] = PersonType.INDIVIDUAL
 
         user_name = user_input[CONF_PERSON_NAME]
         user_egn = user_input[CONF_PERSON_EGN]
@@ -128,10 +120,11 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     async def async_step_business(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         """Handle the initial step."""
 
-        errors: dict[str, str] = {}
+        if len(user_input) == 1:
+            return self.async_show_form(step_id="business", data_schema=SCHEMA_BUSINESS)
 
         # Init user input values & init KatClient
-        user_input[CONF_PERSON_TYPE] = PersonType.BUSINESS
+        # user_input[CONF_PERSON_TYPE] = PersonType.BUSINESS
 
         user_name = user_input[CONF_PERSON_NAME]
         user_egn = user_input[CONF_PERSON_EGN]
