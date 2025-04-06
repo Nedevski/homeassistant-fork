@@ -69,7 +69,7 @@ async def test_coordinator_setup_ok_business(
 async def test_coordinator_setup_id_document_invalid_individual(
     hass: HomeAssistant,
     config_entry_v2_individual: MockConfigEntry,
-    mock_get_obligations_err_document_invalid,
+    mock_get_obligations_err_driving_license_invalid,
 ) -> None:
     """Test that the coordinator can update."""
     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
@@ -86,7 +86,24 @@ async def test_coordinator_setup_id_document_invalid_individual(
 async def test_coordinator_setup_id_document_invalid_business(
     hass: HomeAssistant,
     config_entry_v2_business: MockConfigEntry,
-    mock_get_obligations_err_document_invalid,
+    mock_get_obligations_err_gov_id_number_invalid,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
+
+
+@pytest.mark.asyncio
+async def test_coordinator_setup_bulstat_invalid_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_bulstat_invalid,
 ) -> None:
     """Test that the coordinator can update."""
     assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
