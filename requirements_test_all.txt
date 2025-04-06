@@ -1081,7 +1081,7 @@ jsonpath==0.82.2
 justnimbus==0.7.4
 
 # homeassistant.components.kat_bulgaria
-kat_bulgaria==1.2.1
+kat_bulgaria==2.0.0
 
 # homeassistant.components.kegtron
 kegtron-ble==0.4.0
@@ -1548,6 +1548,7 @@ pycoolmasternet-async==0.2.2
 pycountry==24.6.1
 
 # homeassistant.components.microsoft
+# homeassistant.components.microsoft_tts
 pycsspeechtts==1.0.8
 
 # homeassistant.components.daikin
