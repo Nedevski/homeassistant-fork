@@ -8,6 +8,7 @@ from typing import Any
 from kat_bulgaria.errors import KatError, KatErrorType
 import voluptuous as vol
 
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
@@ -52,6 +53,11 @@ SCHEMA_BUSINESS = vol.Schema(
     }
 )
 
+STEP_ID_USER = config_entries.SOURCE_USER
+STEP_ID_INDIVIDUAL = PersonType.INDIVIDUAL
+STEP_ID_BUSINESS = PersonType.BUSINESS
+STEP_ID_RECONFIGURE = config_entries.SOURCE_RECONFIGURE
+
 
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for kat_bulgaria."""
@@ -65,7 +71,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         # If no input, show default form
         if user_input is None:
-            return self.async_show_form(step_id="user", data_schema=SCHEMA_START)
+            return self.async_show_form(step_id=STEP_ID_USER, data_schema=SCHEMA_START)
 
         person_type = user_input[CONF_PERSON_TYPE]
 
@@ -79,7 +85,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         # Show the form again with an error
         return self.async_show_form(
-            step_id="user",
+            step_id=STEP_ID_USER,
             data_schema=SCHEMA_START,
             errors={"base": "invalid_type"},
         )
@@ -91,7 +97,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if len(user_input) == 1:
             return self.async_show_form(
-                step_id="individual", data_schema=SCHEMA_INDIVIDUAL
+                step_id=STEP_ID_INDIVIDUAL, data_schema=SCHEMA_INDIVIDUAL
             )
 
         # Init user input values & init KatClient
@@ -114,7 +120,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if errors:
             return self.async_show_form(
-                step_id="individual", data_schema=SCHEMA_INDIVIDUAL, errors=errors
+                step_id=STEP_ID_INDIVIDUAL,
+                data_schema=SCHEMA_INDIVIDUAL,
+                errors=errors,
             )
 
         # If this person (EGN) is already configured, abort
@@ -127,7 +135,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
 
         if len(user_input) == 1:
-            return self.async_show_form(step_id="business", data_schema=SCHEMA_BUSINESS)
+            return self.async_show_form(
+                step_id=STEP_ID_BUSINESS, data_schema=SCHEMA_BUSINESS
+            )
 
         # Init user input values & init KatClient
         # user_input[CONF_PERSON_TYPE] = PersonType.BUSINESS
@@ -150,7 +160,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if errors:
             return self.async_show_form(
-                step_id="business", data_schema=SCHEMA_BUSINESS, errors=errors
+                step_id=STEP_ID_BUSINESS, data_schema=SCHEMA_BUSINESS, errors=errors
             )
 
         # If this person (EGN) is already configured, abort
@@ -177,7 +187,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if not user_input:
             return self.async_show_form(
-                step_id="reconfigure",
+                step_id=STEP_ID_RECONFIGURE,
                 data_schema=reconfigure_data_schema,
             )
 
@@ -199,7 +209,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
                 if errors:
                     return self.async_show_form(
-                        step_id="reconfigure",
+                        step_id=STEP_ID_RECONFIGURE,
                         data_schema=reconfigure_data_schema,
                         errors=errors,
                     )
@@ -218,13 +228,13 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
                 if errors:
                     return self.async_show_form(
-                        step_id="reconfigure",
+                        step_id=STEP_ID_RECONFIGURE,
                         data_schema=reconfigure_data_schema,
                         errors=errors,
                     )
             case _:
                 return self.async_show_form(
-                    step_id="reconfigure",
+                    step_id=STEP_ID_RECONFIGURE,
                     data_schema=None,
                     errors={"base": "invalid_type"},
                 )

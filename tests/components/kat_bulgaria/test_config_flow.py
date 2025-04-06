@@ -1,71 +1,154 @@
 """Test KAT Bulgaria setup process."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
+from kat_bulgaria.errors import KatError, KatErrorType
 import pytest
 
-from homeassistant import config_entries
 from homeassistant.components.kat_bulgaria import const as kat_constants
-from homeassistant.components.kat_bulgaria.const import (
-    CONF_DRIVING_LICENSE,
-    CONF_PERSON_EGN,
-    CONF_PERSON_NAME,
+from homeassistant.components.kat_bulgaria.config_flow import (
+    STEP_ID_BUSINESS,
+    STEP_ID_INDIVIDUAL,
+    STEP_ID_USER,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 from . import (
-    EGN_INVALID,
+    BULSTAT_VALID,
     EGN_VALID,
-    LICENSE_INVALID,
-    LICENSE_VALID,
-    MOCK_DATA,
+    MOCK_DATA_BUSINESS,
+    MOCK_DATA_INDIVIDUAL,
+    MOCK_DATA_PERSON_TYPE_BUSINESS,
+    MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
     MOCK_NAME,
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
 )
 
 from tests.common import MockConfigEntry
 
 
 @pytest.mark.asyncio
-async def test_flow_works(
-    hass: HomeAssistant, validate_credentials: pytest.fixture
-) -> None:
+async def test_flow_init_nodata_opens_configflow(hass: HomeAssistant) -> None:
     """Test config flow."""
 
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    config_flow_user = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN, context={"source": STEP_ID_USER}
     )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
+    assert config_flow_user["type"] is FlowResultType.FORM
+    assert config_flow_user["step_id"] == STEP_ID_USER
 
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA,
-        )
-        await hass.async_block_till_done()
+    config_flow_individual = await hass.config_entries.flow.async_configure(
+        config_flow_user["flow_id"],
+    )
+    await hass.async_block_till_done()
+
+    assert config_flow_individual["type"] is FlowResultType.FORM
+    assert config_flow_individual["step_id"] == STEP_ID_USER
+
+
+@pytest.mark.asyncio
+async def test_flow_init_individual(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_user = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN, context={"source": STEP_ID_USER}
+    )
+    assert config_flow_user["type"] is FlowResultType.FORM
+    assert config_flow_user["step_id"] == STEP_ID_USER
+
+    config_flow_individual = await hass.config_entries.flow.async_configure(
+        config_flow_user["flow_id"],
+        user_input=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
+
+    assert config_flow_individual["type"] is FlowResultType.FORM
+    assert config_flow_individual["step_id"] == STEP_ID_INDIVIDUAL
+
+
+@pytest.mark.asyncio
+async def test_flow_init_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_user = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN, context={"source": STEP_ID_USER}
+    )
+    assert config_flow_user["type"] is FlowResultType.FORM
+    assert config_flow_user["step_id"] == STEP_ID_USER
+
+    config_flow_business = await hass.config_entries.flow.async_configure(
+        config_flow_user["flow_id"],
+        user_input=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_flow_business["type"] is FlowResultType.FORM
+    assert config_flow_business["step_id"] == STEP_ID_BUSINESS
+
+
+@pytest.mark.asyncio
+@patch(PATCH_VALIDATE_CREDS_INDIVIDUAL, AsyncMock(return_value=True))
+async def test_flow_individual(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
 
     assert config_result["type"] is FlowResultType.CREATE_ENTRY
     assert config_result["title"] == MOCK_NAME
-    assert config_result["data"] == MOCK_DATA
-    assert len(mock_setup_entry.mock_calls) == 1
+    assert config_result["data"] == MOCK_DATA_INDIVIDUAL
 
 
-async def test_user_details_error(
-    hass: HomeAssistant, validate_credentials_error_notfoundonline
-) -> None:
-    """Test config flow when user is not found online."""
+@pytest.mark.asyncio
+@patch(PATCH_VALIDATE_CREDS_BUSINESS, AsyncMock(return_value=True))
+async def test_flow_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
 
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
     )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
 
     config_result = await hass.config_entries.flow.async_configure(
-        flow_result["flow_id"], user_input=MOCK_DATA
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.CREATE_ENTRY
+    assert config_result["title"] == MOCK_NAME
+    assert config_result["data"] == MOCK_DATA_BUSINESS
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(side_effect=KatError(KatErrorType.VALIDATION_EGN_INVALID, "error text")),
+)
+async def test_flow_error_egn_invalid_individual(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
     )
     await hass.async_block_till_done()
 
@@ -73,211 +156,441 @@ async def test_user_details_error(
     assert config_result["errors"] == {"base": "invalid_config"}
 
 
-async def test_invalid_egn(hass: HomeAssistant, validate_credentials_error_egn) -> None:
-    """Test host already configured."""
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(side_effect=KatError(KatErrorType.VALIDATION_EGN_INVALID, "error text")),
+)
+async def test_flow_error_egn_invalid_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
 
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
     )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
 
-    MOCK_DATA_INVALID = {
-        CONF_PERSON_NAME: "test",
-        CONF_PERSON_EGN: EGN_INVALID,
-        CONF_DRIVING_LICENSE: LICENSE_VALID,
-    }
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA_INVALID,
-        )
-        await hass.async_block_till_done()
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
 
     assert config_result["type"] is FlowResultType.FORM
     assert config_result["errors"] == {"base": "invalid_config"}
-    assert len(mock_setup_entry.mock_calls) == 0
 
 
-async def test_invalid_license(
-    hass: HomeAssistant, validate_credentials_error_license
-) -> None:
-    """Test host already configured."""
-
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
-
-    MOCK_DATA_INVALID = {
-        CONF_PERSON_NAME: "test",
-        CONF_PERSON_EGN: EGN_VALID,
-        CONF_DRIVING_LICENSE: LICENSE_INVALID,
-    }
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA_INVALID,
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(
+        side_effect=KatError(
+            KatErrorType.VALIDATION_USER_NOT_FOUND_ONLINE, "error text"
         )
-        await hass.async_block_till_done()
+    ),
+)
+async def test_flow_error_notfoundonline_individual(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
 
     assert config_result["type"] is FlowResultType.FORM
     assert config_result["errors"] == {"base": "invalid_config"}
-    assert len(mock_setup_entry.mock_calls) == 0
 
 
-async def test_host_already_configured(
-    hass: HomeAssistant, validate_credentials
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(
+        side_effect=KatError(
+            KatErrorType.VALIDATION_USER_NOT_FOUND_ONLINE, "error text"
+        )
+    ),
+)
+async def test_flow_error_notfoundonline_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "invalid_config"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(
+        side_effect=KatError(KatErrorType.VALIDATION_ID_DOCUMENT_INVALID, "error text")
+    ),
+)
+async def test_flow_error_invalid_document_individual(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "invalid_config"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(
+        side_effect=KatError(KatErrorType.VALIDATION_ID_DOCUMENT_INVALID, "error text")
+    ),
+)
+async def test_flow_error_invalid_document_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "invalid_config"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(side_effect=KatError(KatErrorType.API_TIMEOUT, "error text")),
+)
+async def test_flow_error_api_timeout_individual(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(side_effect=KatError(KatErrorType.API_TIMEOUT, "error text")),
+)
+async def test_flow_error_api_timeout_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(side_effect=KatError(KatErrorType.API_ERROR_READING_DATA, "error text")),
+)
+async def test_flow_error_api_error_reading_data_individual(
+    hass: HomeAssistant,
 ) -> None:
-    """Test host already configured."""
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(side_effect=KatError(KatErrorType.API_ERROR_READING_DATA, "error text")),
+)
+async def test_flow_error_api_error_reading_data_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(side_effect=KatError(KatErrorType.API_INVALID_SCHEMA, "error text")),
+)
+async def test_flow_error_api_invalid_schema_individual(
+    hass: HomeAssistant,
+) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(side_effect=KatError(KatErrorType.API_INVALID_SCHEMA, "error text")),
+)
+async def test_flow_error_api_invalid_schema_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(side_effect=KatError(KatErrorType.API_TOO_MANY_REQUESTS, "error text")),
+)
+async def test_flow_error_api_too_many_requests_individual(
+    hass: HomeAssistant,
+) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(side_effect=KatError(KatErrorType.API_TOO_MANY_REQUESTS, "error text")),
+)
+async def test_flow_error_api_too_many_requests_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
+    AsyncMock(side_effect=KatError(KatErrorType.API_UNKNOWN_ERROR, "error text")),
+)
+async def test_flow_error_api_unknown_error_individual(
+    hass: HomeAssistant,
+) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    AsyncMock(side_effect=KatError(KatErrorType.API_UNKNOWN_ERROR, "error text")),
+)
+async def test_flow_error_api_unknown_error_business(hass: HomeAssistant) -> None:
+    """Test config flow."""
+
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
+    )
+
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
+    )
+    await hass.async_block_till_done()
+
+    assert config_result["type"] is FlowResultType.FORM
+    assert config_result["errors"] == {"base": "cannot_connect"}
+
+
+@pytest.mark.asyncio
+@patch(PATCH_VALIDATE_CREDS_INDIVIDUAL, AsyncMock(return_value=True))
+async def test_flow_error_already_configured_individual(
+    hass: HomeAssistant,
+) -> None:
+    """Test config flow."""
 
     entry = MockConfigEntry(
         domain=kat_constants.DOMAIN,
-        data=MOCK_DATA,
+        data=MOCK_DATA_INDIVIDUAL,
         unique_id=EGN_VALID,
     )
     entry.add_to_hass(hass)
 
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_INDIVIDUAL},
+        data=MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
     )
 
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ):
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"], user_input=MOCK_DATA
-        )
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_INDIVIDUAL,
+    )
+    await hass.async_block_till_done()
 
     assert config_result["type"] is FlowResultType.ABORT
     assert config_result["reason"] == "already_configured"
 
 
-async def test_api_timeout(
-    hass: HomeAssistant, validate_credentials_api_timeout
+@pytest.mark.asyncio
+@patch(PATCH_VALIDATE_CREDS_BUSINESS, AsyncMock(return_value=True))
+async def test_flow_error_already_configured_business(
+    hass: HomeAssistant,
 ) -> None:
-    """Test API timeout."""
+    """Test config flow."""
 
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    entry = MockConfigEntry(
+        domain=kat_constants.DOMAIN,
+        data=MOCK_DATA_BUSINESS,
+        unique_id=BULSTAT_VALID,
     )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
+    entry.add_to_hass(hass)
 
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA,
-        )
-        await hass.async_block_till_done()
-
-    assert config_result["type"] is FlowResultType.FORM
-    assert config_result["errors"] == {"base": "cannot_connect"}
-    assert len(mock_setup_entry.mock_calls) == 0
-
-
-async def test_api_errorreadingdata(
-    hass: HomeAssistant, validate_credentials_api_errorreadingdata
-) -> None:
-    """Test herror reading data from API."""
-
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    config_flow_individual = await hass.config_entries.flow.async_init(
+        kat_constants.DOMAIN,
+        context={"source": STEP_ID_BUSINESS},
+        data=MOCK_DATA_PERSON_TYPE_BUSINESS,
     )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
 
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA,
-        )
-        await hass.async_block_till_done()
-
-    assert config_result["type"] is FlowResultType.FORM
-    assert config_result["errors"] == {"base": "cannot_connect"}
-    assert len(mock_setup_entry.mock_calls) == 0
-
-
-async def test_api_invalidschema(
-    hass: HomeAssistant, validate_credentials_api_invalidschema
-) -> None:
-    """Test invalid data schema."""
-
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    config_result = await hass.config_entries.flow.async_configure(
+        config_flow_individual["flow_id"],
+        user_input=MOCK_DATA_BUSINESS,
     )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
+    await hass.async_block_till_done()
 
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA,
-        )
-        await hass.async_block_till_done()
-
-    assert config_result["type"] is FlowResultType.FORM
-    assert config_result["errors"] == {"base": "cannot_connect"}
-    assert len(mock_setup_entry.mock_calls) == 0
-
-
-async def test_api_toomanyrequests(
-    hass: HomeAssistant, validate_credentials_api_toomanyrequests
-) -> None:
-    """Test too many requests API error."""
-
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
-
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA,
-        )
-        await hass.async_block_till_done()
-
-    assert config_result["type"] is FlowResultType.FORM
-    assert config_result["errors"] == {"base": "cannot_connect"}
-    assert len(mock_setup_entry.mock_calls) == 0
-
-
-async def test_api_unknownerror(
-    hass: HomeAssistant, validate_credentials_api_unknownerror
-) -> None:
-    """Test unknown error."""
-
-    flow_result = await hass.config_entries.flow.async_init(
-        kat_constants.DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert flow_result["type"] is FlowResultType.FORM
-    assert flow_result["step_id"] == "user"
-
-    with patch(
-        "homeassistant.components.kat_bulgaria.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        config_result = await hass.config_entries.flow.async_configure(
-            flow_result["flow_id"],
-            user_input=MOCK_DATA,
-        )
-        await hass.async_block_till_done()
-
-    assert config_result["type"] is FlowResultType.FORM
-    assert config_result["errors"] == {"base": "cannot_connect"}
-    assert len(mock_setup_entry.mock_calls) == 0
+    assert config_result["type"] is FlowResultType.ABORT
+    assert config_result["reason"] == "already_configured"
