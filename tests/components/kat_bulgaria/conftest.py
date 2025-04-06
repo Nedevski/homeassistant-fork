@@ -13,19 +13,26 @@ from homeassistant.components.kat_bulgaria.const import PersonType
 from homeassistant.components.kat_bulgaria.kat_client import KatClient
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import Awaitable, Callable
 
 from . import (
     BULSTAT_VALID,
     EGN_VALID,
     LICENSE_VALID,
+    MOCK_DATA_BUSINESS,
     MOCK_DATA_INDIVIDUAL,
+    MOCK_DATA_PERSON_TYPE_BUSINESS,
+    MOCK_DATA_PERSON_TYPE_INDIVIDUAL,
     MOCK_DATA_V1,
 )
 
 from tests.common import MockConfigEntry
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+PLATFORMS_LIST = [
+    Platform.BINARY_SENSOR,
+    Platform.SENSOR,
+]
 
 # region py_kat_bulgaria
 
@@ -95,14 +102,14 @@ def mock_validate_credentials_api_unknownerror():
 # region hass_kat_bulgaria
 
 
-@pytest.fixture(name="katclient_get_obligations_success_none")
-def katclient_get_obligations_success_none():
-    """Mock get obligations."""
-    with patch(
-        "homeassistant.components.kat_bulgaria.kat_client.KatClient.get_obligations_individual"
-    ) as mock_get_obligations:
-        mock_get_obligations.return_value = []
-        yield
+# @pytest.fixture(name="katclient_get_obligations_success_none")
+# def katclient_get_obligations_success_none():
+#     """Mock get obligations."""
+#     with patch(
+#         "homeassistant.components.kat_bulgaria.kat_client.KatClient.get_obligations_individual"
+#     ) as mock_get_obligations:
+#         mock_get_obligations.return_value = []
+#         yield
 
 
 @pytest.fixture(name="katclient_get_obligations_usernotfoundonline")
@@ -200,7 +207,10 @@ def mock_config_entry_v1() -> MockConfigEntry:
 def mock_config_entry_v2_individual() -> MockConfigEntry:
     """Fixture for a config entry."""
     return MockConfigEntry(
-        domain=DOMAIN, data=MOCK_DATA_INDIVIDUAL, unique_id=EGN_VALID, version=2
+        domain=DOMAIN,
+        data={**MOCK_DATA_PERSON_TYPE_INDIVIDUAL, **MOCK_DATA_INDIVIDUAL},
+        unique_id=EGN_VALID,
+        version=2,
     )
 
 
@@ -208,60 +218,82 @@ def mock_config_entry_v2_individual() -> MockConfigEntry:
 def mock_config_entry_v2__business() -> MockConfigEntry:
     """Fixture for a config entry."""
     return MockConfigEntry(
-        domain=DOMAIN, data=MOCK_DATA_INDIVIDUAL, unique_id=EGN_VALID, version=2
+        domain=DOMAIN,
+        data={**MOCK_DATA_PERSON_TYPE_BUSINESS, **MOCK_DATA_BUSINESS},
+        unique_id=EGN_VALID,
+        version=2,
     )
 
 
-@pytest.fixture(name="integration_setup_v2_individual")
-async def mock_integration_setup_v2_individual(
-    hass: HomeAssistant,
-    platforms: list[Platform],
-    config_entry_v2_individual: MockConfigEntry,
-) -> Callable[[MagicMock], Awaitable[bool]]:
-    """Fixture to set up the integration."""
-    config_entry_v2_individual.add_to_hass(hass)
+@pytest.fixture(name="mock_get_obligations_ok_nodata")
+def mock_get_obligations_ok_nodata():
+    """Mock get obligations."""
 
-    async def run(client: MagicMock) -> bool:
-        with (
-            patch("homeassistant.components.kat_bulgaria.PLATFORMS", platforms),
-            patch(
-                "homeassistant.components.kat_bulgaria.kat_client.KatClient"
-            ) as client_mock,
-        ):
-            client_mock.return_value = client
-            result = await hass.config_entries.async_setup(
-                config_entry_v2_individual.entry_id
-            )
-            await hass.async_block_till_done()
-        return result
-
-    return run
+    with patch(
+        "homeassistant.components.kat_bulgaria.kat_client.KatClient.get_obligations"
+    ) as mock_get_obligations:
+        mock_get_obligations.return_value = []
+        yield
 
 
-@pytest.fixture(name="integration_setup_v2_business")
-async def mock_integration_setup_v2_business(
-    hass: HomeAssistant,
-    platforms: list[Platform],
-    config_entry_v2_individual: MockConfigEntry,
-) -> Callable[[MagicMock], Awaitable[bool]]:
-    """Fixture to set up the integration."""
-    config_entry_v2_individual.add_to_hass(hass)
+# @pytest.fixture(name="integration_setup_v2_individual")
+# async def mock_integration_setup_v2_individual(
+#     hass: HomeAssistant,
+#     platforms: list[Platform],
+#     config_entry_v2_individual: MockConfigEntry,
+# ) -> Callable[[MagicMock], Awaitable[bool]]:
+#     """Fixture to set up the integration."""
+#     config_entry_v2_individual.add_to_hass(hass)
 
-    async def run(client: MagicMock) -> bool:
-        with (
-            patch("homeassistant.components.kat_bulgaria.PLATFORMS", platforms),
-            patch(
-                "homeassistant.components.kat_bulgaria.kat_client.KatClient"
-            ) as client_mock,
-        ):
-            client_mock.return_value = client
-            result = await hass.config_entries.async_setup(
-                config_entry_v2_individual.entry_id
-            )
-            await hass.async_block_till_done()
-        return result
+#     async def run(client: MagicMock) -> bool:
+#         with (
+#             patch("homeassistant.components.kat_bulgaria.PLATFORMS", platforms),
+#             patch(
+#                 "homeassistant.components.kat_bulgaria.kat_client.KatClient"
+#             ) as client_mock,
+#         ):
+#             client_mock.return_value = client
+#             result = await hass.config_entries.async_setup(
+#                 config_entry_v2_individual.entry_id
+#             )
+#             await hass.async_block_till_done()
+#         return result
 
-    return run
+#     return run
+
+
+# @pytest.fixture(name="integration_setup_v2_business")
+# async def mock_integration_setup_v2_business(
+#     hass: HomeAssistant,
+#     platforms: list[Platform],
+#     config_entry_v2_individual: MockConfigEntry,
+# ) -> Callable[[MagicMock], Awaitable[bool]]:
+#     """Fixture to set up the integration."""
+#     config_entry_v2_individual.add_to_hass(hass)
+
+#     async def run(client: MagicMock) -> bool:
+#         with (
+#             patch("homeassistant.components.kat_bulgaria.PLATFORMS", platforms),
+#             # patch(
+#             #     "homeassistant.components.kat_bulgaria.kat_client.KatClient"
+#             # ) as client_mock,
+#         ):
+#             # client_mock.return_value = client
+#             result = await hass.config_entries.async_setup(
+#                 config_entry_v2_individual.entry_id
+#             )
+#             await hass.async_block_till_done()
+#         return result
+
+#     return run
+
+
+# @pytest.fixture(name="platforms_list")
+# def mock_platform_list():
+#     """Fixture to specify platforms to test."""
+
+#     with patch("homeassistant.components.kat_bulgaria.PLATFORMS", PLATFORMS_LIST):
+#         yield PLATFORMS_LIST
 
 
 # endregion
@@ -316,9 +348,7 @@ def mock_client_ok_individual(
 ) -> MagicMock:
     """Fixture to mock KatClient."""
 
-    mock = KatClient(
-        hass, PersonType.INDIVIDUAL, "test", EGN_VALID, LICENSE_VALID, None
-    )
+    mock = KatClient(hass, PersonType.INDIVIDUAL, EGN_VALID, LICENSE_VALID, None)
 
     mock.get_obligations = AsyncMock(
         side_effect=[],
@@ -335,9 +365,7 @@ def mock_client_ok_business(
 ) -> MagicMock:
     """Fixture to mock KatClient."""
 
-    mock = KatClient(
-        hass, PersonType.BUSINESS, "test", EGN_VALID, LICENSE_VALID, BULSTAT_VALID
-    )
+    mock = KatClient(hass, PersonType.BUSINESS, EGN_VALID, LICENSE_VALID, BULSTAT_VALID)
 
     mock.get_obligations = AsyncMock(
         side_effect=[],
@@ -354,9 +382,7 @@ def mock_client_fine_served_individual(
 ) -> MagicMock:
     """Fixture to mock KatClient."""
 
-    mock = KatClient(
-        hass, PersonType.INDIVIDUAL, "test", EGN_VALID, LICENSE_VALID, None
-    )
+    mock = KatClient(hass, PersonType.INDIVIDUAL, EGN_VALID, LICENSE_VALID, None)
 
     mock.get_obligations = AsyncMock(
         side_effect=ok_fine_served,
@@ -373,9 +399,7 @@ def mock_client_fine_served_business(
 ) -> MagicMock:
     """Fixture to mock KatClient."""
 
-    mock = KatClient(
-        hass, PersonType.BUSINESS, "test", EGN_VALID, LICENSE_VALID, BULSTAT_VALID
-    )
+    mock = KatClient(hass, PersonType.BUSINESS, EGN_VALID, LICENSE_VALID, BULSTAT_VALID)
 
     mock.get_obligations = AsyncMock(
         side_effect=ok_fine_served,
@@ -392,9 +416,7 @@ def mock_client_api_timeout_individual(
 ) -> MagicMock:
     """Fixture to mock KatClient."""
 
-    mock = KatClient(
-        hass, PersonType.INDIVIDUAL, "test", EGN_VALID, LICENSE_VALID, None
-    )
+    mock = KatClient(hass, PersonType.INDIVIDUAL, EGN_VALID, LICENSE_VALID, None)
 
     mock.get_obligations = AsyncMock(
         side_effect=KatError(KatErrorType.API_TIMEOUT, "error text"),
@@ -411,7 +433,7 @@ def mock_client_api_timeout_business(
 ) -> MagicMock:
     """Fixture to mock KatClient."""
 
-    mock = KatClient(hass, PersonType.BUSINESS, "test", EGN_VALID, LICENSE_VALID, None)
+    mock = KatClient(hass, PersonType.BUSINESS, EGN_VALID, LICENSE_VALID, None)
 
     mock.get_obligations = AsyncMock(
         side_effect=KatError(KatErrorType.API_TIMEOUT, "error text"),

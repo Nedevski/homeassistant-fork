@@ -110,7 +110,6 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         kat_client = KatClient(
             self.hass,
             PersonType.INDIVIDUAL,
-            user_name,
             user_egn,
             user_license_number,
             None,
@@ -150,7 +149,6 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         kat_client = KatClient(
             self.hass,
             PersonType.BUSINESS,
-            user_name,
             user_egn,
             user_gov_id_number,
             user_bulstat,
@@ -200,7 +198,6 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                     KatClient(
                         self.hass,
                         PersonType.INDIVIDUAL,
-                        reconfigure_entry.data[CONF_PERSON_NAME],
                         reconfigure_entry.data[CONF_PERSON_EGN],
                         new_document_number,
                         None,
@@ -219,7 +216,6 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                     KatClient(
                         self.hass,
                         PersonType.BUSINESS,
-                        reconfigure_entry.data[CONF_PERSON_NAME],
                         reconfigure_entry.data[CONF_PERSON_EGN],
                         new_document_number,
                         reconfigure_entry.data[CONF_BULSTAT],
