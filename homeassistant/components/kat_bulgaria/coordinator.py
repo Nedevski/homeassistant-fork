@@ -7,7 +7,6 @@ from kat_bulgaria.errors import KatError, KatErrorType
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -82,7 +81,7 @@ class KatBulgariaUpdateCoordinator(DataUpdateCoordinator):
                     "Invalid KAT API credentials, unable to update: %s",
                     error.error_type,
                 )
-                raise ConfigEntryAuthFailed(
+                raise UpdateFailed(
                     translation_domain=DOMAIN,
                     translation_key="invalid_config",
                 ) from error

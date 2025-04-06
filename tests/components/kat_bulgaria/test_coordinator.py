@@ -2,6 +2,7 @@
 
 import pytest
 
+from homeassistant.components.kat_bulgaria.const import COORD_DATA_KEY
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
@@ -9,11 +10,9 @@ from . import BULSTAT_VALID, EGN_VALID, LICENSE_VALID, PersonType
 
 from tests.common import MockConfigEntry
 
-# region Integration Setup
-
 
 @pytest.mark.asyncio
-async def test_coordinator_setup_individual(
+async def test_coordinator_setup_ok_individual(
     hass: HomeAssistant,
     config_entry_v2_individual: MockConfigEntry,
     mock_get_obligations_ok_nodata,
@@ -36,10 +35,11 @@ async def test_coordinator_setup_individual(
     assert coordinator.client.bulstat is None
 
     assert coordinator.client.get_obligations.call_count == 1
+    assert coordinator.data == {COORD_DATA_KEY: []}
 
 
 @pytest.mark.asyncio
-async def test_coordinator_setup_business(
+async def test_coordinator_setup_ok_business(
     hass: HomeAssistant,
     config_entry_v2_business: MockConfigEntry,
     mock_get_obligations_ok_nodata,
@@ -62,120 +62,242 @@ async def test_coordinator_setup_business(
     assert coordinator.client.bulstat == BULSTAT_VALID
 
     assert coordinator.client.get_obligations.call_count == 1
+    assert coordinator.data == {COORD_DATA_KEY: []}
 
 
-# @pytest.mark.asyncio
-# async def test_coordinator_update_ok_nodata(
-#     hass: HomeAssistant,
-#     config_entry_v2_individual: MockConfigEntry,
-#     mock_get_obligations_ok_nodata,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     # find coordinator, test if katclient is the correct type
+@pytest.mark.asyncio
+async def test_coordinator_setup_id_document_invalid_individual(
+    hass: HomeAssistant,
+    config_entry_v2_individual: MockConfigEntry,
+    mock_get_obligations_err_document_invalid,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_individual.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_individual.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
 
 
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_fine_served_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.LOADED
-#     assert client_fine_served_individual.get_obligations.call_count == 1
-#     assert client_fine_served_individual.get_obligations.call_args[0] == (
-#         EGN_VALID,
-#         LICENSE_VALID,
-#     )
+@pytest.mark.asyncio
+async def test_coordinator_setup_id_document_invalid_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_document_invalid,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
 
-# async def test_coordinator_usernotfoundonline(
-#     config_entry_v2_individual: MockConfigEntry,
-#     integration_setup_v2_individual: Callable[[MagicMock], Awaitable[bool]],
-#     client_ok_individual: MagicMock,
-#     katclient_get_obligations_usernotfoundonline,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_ok_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.SETUP_ERROR
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
 
 
-# async def test_coordinator_api_timeout(
-#     config_entry_v2_individual: MockConfigEntry,
-#     integration_setup_v2_individual: Callable[[MagicMock], Awaitable[bool]],
-#     client_ok_individual: MagicMock,
-#     katclient_get_obligations_api_timeout,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_ok_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
+@pytest.mark.asyncio
+async def test_coordinator_setup_usernotfoundonline_individual(
+    hass: HomeAssistant,
+    config_entry_v2_individual: MockConfigEntry,
+    mock_get_obligations_err_usernotfound,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_individual.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_individual.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
 
 
-# async def test_coordinator_api_toomanyrequests(
-#     config_entry_v2_individual: MockConfigEntry,
-#     integration_setup_v2_individual: Callable[[MagicMock], Awaitable[bool]],
-#     client_ok_individual: MagicMock,
-#     katclient_get_obligations_api_toomanyrequests,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_ok_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
+@pytest.mark.asyncio
+async def test_coordinator_setup_usernotfoundonline_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_usernotfound,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
 
 
-# async def test_coordinator_api_invaliddata(
-#     config_entry_v2_individual: MockConfigEntry,
-#     integration_setup_v2_individual: Callable[[MagicMock], Awaitable[bool]],
-#     client_ok_individual: MagicMock,
-#     katclient_get_obligations_api_errorreadingdata,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_ok_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_timeout_individual(
+    hass: HomeAssistant,
+    config_entry_v2_individual: MockConfigEntry,
+    mock_get_obligations_err_api_timeout,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_individual.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_individual.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
 
 
-# async def test_coordinator_api_invalidschema(
-#     config_entry_v2_individual: MockConfigEntry,
-#     integration_setup_v2_individual: Callable[[MagicMock], Awaitable[bool]],
-#     client_ok_individual: MagicMock,
-#     katclient_get_obligations_api_invalidschema,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_ok_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_timeout_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_api_timeout,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
 
 
-# async def test_coordinator_api_unknownerror(
-#     config_entry_v2_individual: MockConfigEntry,
-#     integration_setup_v2_individual: Callable[[MagicMock], Awaitable[bool]],
-#     client_ok_individual: MagicMock,
-#     katclient_get_obligations_api_unknownerror,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_ok_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_toomanyrequests_individual(
+    hass: HomeAssistant,
+    config_entry_v2_individual: MockConfigEntry,
+    mock_get_obligations_err_api_toomanyrequests,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_individual.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_individual.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
 
 
-# # endregion
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_toomanyrequests_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_api_toomanyrequests,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
 
 
-# # region Fetch data
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_error_reading_data_individual(
+    hass: HomeAssistant,
+    config_entry_v2_individual: MockConfigEntry,
+    mock_get_obligations_err_api_errorreadingdata,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_individual.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_individual.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
 
 
-# async def test_coordinator_update(
-#     config_entry_v2_individual: MockConfigEntry,
-#     integration_setup_v2_individual: Callable[[MagicMock], Awaitable[bool]],
-#     client_fine_served_individual: MagicMock,
-#     katclient_get_obligations_success_none,
-# ) -> None:
-#     """Test that the coordinator can update."""
-#     assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
-#     await integration_setup_v2_individual(client_fine_served_individual)
-#     assert config_entry_v2_individual.state == ConfigEntryState.LOADED
-#     assert client_fine_served_individual.get_obligations.call_count == 1
-#     assert client_fine_served_individual.get_obligations.call_args[0] == (
-#         EGN_VALID,
-#         LICENSE_VALID,
-#     )
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_error_reading_data_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_api_errorreadingdata,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
 
 
-# # endregion
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_invalidschema_individual(
+    hass: HomeAssistant,
+    config_entry_v2_individual: MockConfigEntry,
+    mock_get_obligations_err_api_invalidschema,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_individual.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_individual.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
+
+
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_invalidschema_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_api_invalidschema,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
+
+
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_unknownerror_individual(
+    hass: HomeAssistant,
+    config_entry_v2_individual: MockConfigEntry,
+    mock_get_obligations_err_api_unknown,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_individual.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_individual.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_individual.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_individual.state == ConfigEntryState.SETUP_RETRY
+
+
+@pytest.mark.asyncio
+async def test_coordinator_setup_api_unknownerror_business(
+    hass: HomeAssistant,
+    config_entry_v2_business: MockConfigEntry,
+    mock_get_obligations_err_api_unknown,
+) -> None:
+    """Test that the coordinator can update."""
+    assert config_entry_v2_business.state == ConfigEntryState.NOT_LOADED
+    config_entry_v2_business.add_to_hass(hass)
+
+    result = await hass.config_entries.async_setup(config_entry_v2_business.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is False
+    assert config_entry_v2_business.state == ConfigEntryState.SETUP_RETRY
