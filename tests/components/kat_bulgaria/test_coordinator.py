@@ -6,7 +6,14 @@ from homeassistant.components.kat_bulgaria.const import COORD_DATA_KEY
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
-from . import BULSTAT_VALID, EGN_VALID, LICENSE_VALID, PersonType
+from . import (
+    BULSTAT_VALID,
+    EGN_VALID,
+    GOV_ID_VALID,
+    LICENSE_VALID,
+    PersonalDocumentType,
+    PersonType,
+)
 
 from tests.common import MockConfigEntry
 
@@ -32,6 +39,9 @@ async def test_coordinator_setup_ok_individual(
     assert coordinator.client.person_type == PersonType.INDIVIDUAL
     assert coordinator.client.person_egn == EGN_VALID
     assert coordinator.client.person_document_number == LICENSE_VALID
+    assert (
+        coordinator.client.person_document_type == PersonalDocumentType.DRIVING_LICENSE
+    )
     assert coordinator.client.bulstat is None
 
     assert coordinator.client.get_obligations.call_count == 1
@@ -58,7 +68,7 @@ async def test_coordinator_setup_ok_business(
     assert coordinator
     assert coordinator.client.person_type == PersonType.BUSINESS
     assert coordinator.client.person_egn == EGN_VALID
-    assert coordinator.client.person_document_number == LICENSE_VALID
+    assert coordinator.client.person_document_number == GOV_ID_VALID
     assert coordinator.client.bulstat == BULSTAT_VALID
 
     assert coordinator.client.get_obligations.call_count == 1
