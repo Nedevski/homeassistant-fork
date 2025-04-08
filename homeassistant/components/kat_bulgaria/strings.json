@@ -4,6 +4,7 @@
       "already_configured": "Device is already configured.",
       "cannot_connect": "KAT's website is down, try again.",
       "invalid_config": "Invalid EGN or Driver License Number.",
+      "reconfigure_successful": "Reconfiguration successful.",
       "unknown": "Unknown error, check the logs for more details."
     },
     "error": {
@@ -23,11 +24,18 @@
       },
       "individual": {
         "data": {
-          "document_number": "Driving License number",
+          "document_number": "Document Number",
+          "document_type": "Document Type",
           "egn": "Unified Civil Number (EGN)",
           "person_name": "Person name"
         },
         "title": "Configuration - Individual"
+      },
+      "reconfigure": {
+        "data": {
+          "document_number": "Document Number",
+          "document_type": "Document Type"
+        }
       },
       "user": {
         "data": {
@@ -74,6 +82,12 @@
       "options": {
         "business": "Business2",
         "individual": "Individual2"
+      }
+    },
+    "document_type": {
+      "options": {
+        "national_id": "National ID",
+        "driving_license": "Driving License"
       }
     }
   }
