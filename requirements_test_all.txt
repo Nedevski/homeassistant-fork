@@ -1081,7 +1081,7 @@ jsonpath==0.82.2
 justnimbus==0.7.4
 
 # homeassistant.components.kat_bulgaria
-kat_bulgaria==3.0.0b4
+kat_bulgaria==3.0.0
 
 # homeassistant.components.kegtron
 kegtron-ble==0.4.0
