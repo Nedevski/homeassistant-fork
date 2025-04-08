@@ -35,11 +35,13 @@
         "data": {
           "document_number": "Document Number",
           "document_type": "Document Type"
-        }
+        },
+        "title": "Update document information"
       },
       "user": {
-        "data": {
-          "person_type": "Are you an individual or a business?"
+        "menu_options": {
+          "business": "Business",
+          "individual": "Individual"
         },
         "title": "Configuration"
       }
@@ -78,12 +80,6 @@
     }
   },
   "selector": {
-    "person_type": {
-      "options": {
-        "business": "Business2",
-        "individual": "Individual2"
-      }
-    },
     "document_type": {
       "options": {
         "national_id": "National ID",
