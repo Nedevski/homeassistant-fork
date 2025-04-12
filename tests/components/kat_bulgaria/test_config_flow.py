@@ -22,16 +22,11 @@ from . import (
     MOCK_DATA_INDIVIDUAL,
     MOCK_DATA_INDIVIDUAL_FULL,
     MOCK_NAME,
+    PATCH_VALIDATE_CREDS_BUSINESS,
+    PATCH_VALIDATE_CREDS_INDIVIDUAL,
 )
 
 from tests.common import MockConfigEntry
-
-PATCH_VALIDATE_CREDS_INDIVIDUAL = (
-    "kat_bulgaria.kat_api_client.KatApiClient.get_obligations_individual"
-)
-PATCH_VALIDATE_CREDS_BUSINESS = (
-    "kat_bulgaria.kat_api_client.KatApiClient.get_obligations_business"
-)
 
 
 @pytest.mark.asyncio

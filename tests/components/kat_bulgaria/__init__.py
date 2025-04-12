@@ -25,6 +25,13 @@ BULSTAT_INVALID = "321"
 
 MOCK_NAME = "KAT - test"
 
+PATCH_VALIDATE_CREDS_INDIVIDUAL = (
+    "kat_bulgaria.kat_api_client.KatApiClient.get_obligations_individual"
+)
+PATCH_VALIDATE_CREDS_BUSINESS = (
+    "kat_bulgaria.kat_api_client.KatApiClient.get_obligations_business"
+)
+
 MOCK_DATA_INDIVIDUAL = {
     CONF_PERSON_NAME: "test",
     CONF_PERSON_EGN: EGN_VALID,
