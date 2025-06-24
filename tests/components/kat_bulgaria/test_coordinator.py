@@ -11,7 +11,7 @@ from . import (
     EGN_VALID,
     GOV_ID_VALID,
     LICENSE_VALID,
-    PersonalDocumentType,
+    PersonalIdentificationType,
     PersonType,
 )
 
@@ -40,7 +40,8 @@ async def test_coordinator_setup_ok_individual(
     assert coordinator.client.person_egn == EGN_VALID
     assert coordinator.client.person_document_number == LICENSE_VALID
     assert (
-        coordinator.client.person_document_type == PersonalDocumentType.DRIVING_LICENSE
+        coordinator.client.person_document_type
+        == PersonalIdentificationType.DRIVING_LICENSE
     )
     assert coordinator.client.bulstat is None
 

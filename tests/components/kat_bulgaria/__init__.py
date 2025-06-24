@@ -1,6 +1,6 @@
 """Tests for KAT Bulgaria."""
 
-from kat_bulgaria.data_models import PersonalDocumentType
+from kat_bulgaria.data_models import PersonalIdentificationType
 
 from homeassistant.components.kat_bulgaria.const import (
     CONF_BULSTAT,
@@ -37,7 +37,7 @@ MOCK_DATA_INDIVIDUAL = {
     CONF_PERSON_NAME: MOCK_USER_NAME,
     CONF_PERSON_EGN: EGN_VALID,
     CONF_DOCUMENT_NUMBER: LICENSE_VALID,
-    CONF_DOCUMENT_TYPE: PersonalDocumentType.DRIVING_LICENSE,
+    CONF_DOCUMENT_TYPE: PersonalIdentificationType.DRIVING_LICENSE,
 }
 
 MOCK_DATA_INDIVIDUAL_FULL = {

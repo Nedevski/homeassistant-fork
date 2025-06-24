@@ -25,7 +25,7 @@ from . import (
     GOV_ID_VALID,
     LICENSE_VALID,
     MOCK_USER_NAME,
-    PersonalDocumentType,
+    PersonalIdentificationType,
     PersonType,
 )
 
@@ -77,7 +77,7 @@ async def test_reconfigure_flow_individual_update_license_ok(
             "entry_id": config_entry_v2_individual.entry_id,
         },
         data={
-            CONF_DOCUMENT_TYPE: PersonalDocumentType.DRIVING_LICENSE,
+            CONF_DOCUMENT_TYPE: PersonalIdentificationType.DRIVING_LICENSE,
             CONF_DOCUMENT_NUMBER: UPDATED_LICENSE,
         },
     )
@@ -90,7 +90,7 @@ async def test_reconfigure_flow_individual_update_license_ok(
 
     assert config
     assert len(config) == 5
-    assert config.get(CONF_DOCUMENT_TYPE) == PersonalDocumentType.DRIVING_LICENSE
+    assert config.get(CONF_DOCUMENT_TYPE) == PersonalIdentificationType.DRIVING_LICENSE
     assert config.get(CONF_DOCUMENT_NUMBER) == UPDATED_LICENSE
     assert config.get(CONF_PERSON_TYPE) == PersonType.INDIVIDUAL
     assert config.get(CONF_PERSON_EGN) == EGN_VALID
@@ -115,7 +115,7 @@ async def test_reconfigure_flow_individual_update_license_to_gov_id_ok(
             "entry_id": config_entry_v2_individual.entry_id,
         },
         data={
-            CONF_DOCUMENT_TYPE: PersonalDocumentType.NATIONAL_ID,
+            CONF_DOCUMENT_TYPE: PersonalIdentificationType.NATIONAL_ID,
             CONF_DOCUMENT_NUMBER: UPDATED_GOV_ID,
         },
     )
@@ -128,7 +128,7 @@ async def test_reconfigure_flow_individual_update_license_to_gov_id_ok(
 
     assert config
     assert len(config) == 5
-    assert config.get(CONF_DOCUMENT_TYPE) == PersonalDocumentType.NATIONAL_ID
+    assert config.get(CONF_DOCUMENT_TYPE) == PersonalIdentificationType.NATIONAL_ID
     assert config.get(CONF_DOCUMENT_NUMBER) == UPDATED_GOV_ID
     assert config.get(CONF_PERSON_TYPE) == PersonType.INDIVIDUAL
     assert config.get(CONF_PERSON_EGN) == EGN_VALID
@@ -163,7 +163,7 @@ async def test_reconfigure_flow_individual_update_license_invalid(
             "entry_id": config_entry_v2_individual.entry_id,
         },
         data={
-            CONF_DOCUMENT_TYPE: PersonalDocumentType.DRIVING_LICENSE,
+            CONF_DOCUMENT_TYPE: PersonalIdentificationType.DRIVING_LICENSE,
             CONF_DOCUMENT_NUMBER: UPDATED_LICENSE,
         },
     )
@@ -177,7 +177,7 @@ async def test_reconfigure_flow_individual_update_license_invalid(
     # unchanged
     assert config
     assert len(config) == 5
-    assert config.get(CONF_DOCUMENT_TYPE) == PersonalDocumentType.DRIVING_LICENSE
+    assert config.get(CONF_DOCUMENT_TYPE) == PersonalIdentificationType.DRIVING_LICENSE
     assert config.get(CONF_DOCUMENT_NUMBER) == LICENSE_VALID
     assert config.get(CONF_PERSON_TYPE) == PersonType.INDIVIDUAL
     assert config.get(CONF_PERSON_EGN) == EGN_VALID
@@ -212,7 +212,7 @@ async def test_reconfigure_flow_individual_update_gov_id_invalid(
             "entry_id": config_entry_v2_individual.entry_id,
         },
         data={
-            CONF_DOCUMENT_TYPE: PersonalDocumentType.NATIONAL_ID,
+            CONF_DOCUMENT_TYPE: PersonalIdentificationType.NATIONAL_ID,
             CONF_DOCUMENT_NUMBER: GOV_ID_INVALID,
         },
     )
@@ -226,7 +226,7 @@ async def test_reconfigure_flow_individual_update_gov_id_invalid(
     # unchanged
     assert config
     assert len(config) == 5
-    assert config.get(CONF_DOCUMENT_TYPE) == PersonalDocumentType.DRIVING_LICENSE
+    assert config.get(CONF_DOCUMENT_TYPE) == PersonalIdentificationType.DRIVING_LICENSE
     assert config.get(CONF_DOCUMENT_NUMBER) == LICENSE_VALID
     assert config.get(CONF_PERSON_TYPE) == PersonType.INDIVIDUAL
     assert config.get(CONF_PERSON_EGN) == EGN_VALID
@@ -261,7 +261,7 @@ async def test_reconfigure_flow_individual_update_user_not_found(
             "entry_id": config_entry_v2_individual.entry_id,
         },
         data={
-            CONF_DOCUMENT_TYPE: PersonalDocumentType.DRIVING_LICENSE,
+            CONF_DOCUMENT_TYPE: PersonalIdentificationType.DRIVING_LICENSE,
             CONF_DOCUMENT_NUMBER: UPDATED_LICENSE,
         },
     )
@@ -275,7 +275,7 @@ async def test_reconfigure_flow_individual_update_user_not_found(
     # unchanged
     assert config
     assert len(config) == 5
-    assert config.get(CONF_DOCUMENT_TYPE) == PersonalDocumentType.DRIVING_LICENSE
+    assert config.get(CONF_DOCUMENT_TYPE) == PersonalIdentificationType.DRIVING_LICENSE
     assert config.get(CONF_DOCUMENT_NUMBER) == LICENSE_VALID
     assert config.get(CONF_PERSON_TYPE) == PersonType.INDIVIDUAL
     assert config.get(CONF_PERSON_EGN) == EGN_VALID
