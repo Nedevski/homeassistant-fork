@@ -73,7 +73,7 @@
         "name": "Count Served"
       },
       "total_ticket_amount_owed": {
-        "name": "Total BGN Owed"
+        "name": "Total EUR Owed"
       },
       "total_ticket_count": {
         "name": "Count Total"
@@ -83,9 +83,9 @@
   "selector": {
     "document_type": {
       "options": {
-        "national_id": "National ID",
+        "car_plate_num": "Car Plate Number",
         "driving_license": "Driving License",
-        "car_plate_num": "Car Plate Number"
+        "national_id": "National ID"
       }
     }
   }
