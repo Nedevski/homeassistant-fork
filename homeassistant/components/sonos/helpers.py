@@ -15,6 +15,7 @@ from soco.exceptions import SoCoException, SoCoUPnPException
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import dispatcher_send
 
 from .const import SONOS_SPEAKER_ACTIVITY
@@ -135,6 +136,7 @@ class UnjoinData:
 
     speakers: list[SonosSpeaker] = field(default_factory=list)
     event: asyncio.Event = field(default_factory=asyncio.Event)
+    exception: HomeAssistantError | OSError | SoCoException | None = None
 
 
 @dataclass
@@ -149,7 +151,8 @@ class SonosData:
     discovery_known: set[str] = field(default_factory=set)
     boot_counts: dict[str, int] = field(default_factory=dict)
     mdns_names: dict[str, str] = field(default_factory=dict)
-    entity_id_mappings: dict[str, SonosSpeaker] = field(default_factory=dict)
+    # Maps the entity unique id to the associated SonosSpeaker instance.
+    unique_id_speaker_mappings: dict[str, SonosSpeaker] = field(default_factory=dict)
     unjoin_data: dict[str, UnjoinData] = field(default_factory=dict)
 
 

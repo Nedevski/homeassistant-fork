@@ -62,6 +62,7 @@ NO_IOT_CLASS = [
     "auth",
     "automation",
     "blueprint",
+    "brands",
     "color_extractor",
     "config",
     "configurator",
@@ -79,6 +80,7 @@ NO_IOT_CLASS = [
     "history",
     "homeassistant",
     "homeassistant_alerts",
+    "homeassistant_connect_zbt2",
     "homeassistant_green",
     "homeassistant_hardware",
     "homeassistant_sky_connect",
@@ -114,6 +116,7 @@ NO_IOT_CLASS = [
     "tag",
     "timer",
     "trace",
+    "web_rtc",
     "webhook",
     "websocket_api",
     "zone",
@@ -416,7 +419,7 @@ def validate(integrations: dict[str, Integration], config: Config) -> None:
     if config.action == "generate" and manifests_resorted:
         subprocess.run(
             [
-                "pre-commit",
+                "prek",
                 "run",
                 "--hook-stage",
                 "manual",
