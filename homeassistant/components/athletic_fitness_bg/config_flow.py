@@ -102,17 +102,30 @@ class ConfigFlow(ConfigEntriesFlow, domain=DOMAIN):
                 data=config_data,
             )
 
+        return await self._show_gym_selection_form("location")
+
+    async def _test_credentials(self, email: str, password: str) -> None:
+        """Test if the provided credentials are valid."""
+        client = AthleticApiClient(self.hass)
+        await client.authenticate(email, password)
+
+    async def _show_gym_selection_form(
+        self, step_id: str, default_gym_ids: list[str] | None = None
+    ) -> ConfigFlowResult:
+        """Show the gym selection form."""
         # Fetch available gyms
         client = AthleticApiClient(self.hass)
         try:
             gyms = await client.get_gyms()
         except AthleticApiClientError as err:
             _LOGGER.error("Error fetching gyms: %s", err)
-            return self.async_show_form(
-                step_id="location",
-                data_schema=vol.Schema({}),
-                errors={"base": "cannot_fetch_gyms"},
-            )
+            if step_id == "location":
+                return self.async_show_form(
+                    step_id=step_id,
+                    data_schema=vol.Schema({}),
+                    errors={"base": "cannot_fetch_gyms"},
+                )
+            return self.async_abort(reason="cannot_fetch_gyms")
 
         self._available_gyms = {
             gym["gymId"]: GymDetails(
@@ -128,9 +141,10 @@ class ConfigFlow(ConfigEntriesFlow, domain=DOMAIN):
             )
             for gym in self._available_gyms.values()
         ]
-        location_schema = vol.Schema(
+
+        schema = vol.Schema(
             {
-                vol.Required("gym_ids", default=[]): SelectSelector(
+                vol.Required("gym_ids", default=default_gym_ids or []): SelectSelector(
                     SelectSelectorConfig(
                         options=options,
                         multiple=True,
@@ -141,11 +155,40 @@ class ConfigFlow(ConfigEntriesFlow, domain=DOMAIN):
         )
 
         return self.async_show_form(
-            step_id="location",
-            data_schema=location_schema,
+            step_id=step_id,
+            data_schema=schema,
         )
 
-    async def _test_credentials(self, email: str, password: str) -> None:
-        """Test if the provided credentials are valid."""
-        client = AthleticApiClient(self.hass)
-        await client.authenticate(email, password)
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle a reconfigure flow to change gym selection."""
+        config_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+        if not config_entry:
+            return self.async_abort(reason="reconfigure_failed")
+
+        if user_input is not None:
+            selected_gym_ids = [int(gid) for gid in user_input["gym_ids"]]
+            selected_gyms = [
+                self._available_gyms[gym_id] for gym_id in selected_gym_ids
+            ]
+
+            updated_data = {
+                **config_entry.data,
+                "gyms": [
+                    {"gym_id": gym.gym_id, "gym_name": gym.gym_name, "city": gym.city}
+                    for gym in selected_gyms
+                ],
+            }
+
+            self.hass.config_entries.async_update_entry(config_entry, data=updated_data)
+            await self.hass.config_entries.async_reload(config_entry.entry_id)
+            return self.async_abort(reason="reconfigure_successful")
+
+        # Get currently selected gyms for prepopulation
+        current_gyms = config_entry.data.get("gyms", [])
+        current_gym_ids = [str(gym["gym_id"]) for gym in current_gyms]
+
+        return await self._show_gym_selection_form("reconfigure", current_gym_ids)

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
 
 from homeassistant import config_entries
 from homeassistant.const import Platform
@@ -11,18 +10,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from . import coordinator
-from .const import DOMAIN as DOMAIN
-
-if TYPE_CHECKING:
-    from .coordinator import (
-        AthleticFitnessBGCoordinator as AthleticFitnessBGCoordinator,
-    )
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [
-    Platform.SENSOR,
-]
+PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
 async def async_setup_entry(
@@ -36,7 +27,6 @@ async def async_setup_entry(
         raise ConfigEntryNotReady(f"Failed to initialize coordinator: {err}") from err
 
     entry.runtime_data = coord
-
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 

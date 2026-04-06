@@ -36,9 +36,9 @@ class PeopleInGymSensor(CoordinatorEntity[AthleticFitnessBGCoordinator], SensorE
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._gym = gym
-        self._attr_name = f"{gym.city} - {gym.gym_name}"
         config_entry = coordinator.config_entry
         assert config_entry is not None
+        self._attr_name = f"{gym.city} - {gym.gym_name}"
         self._attr_unique_id = f"{config_entry.entry_id}_gym_{gym.gym_id}"
 
     @property

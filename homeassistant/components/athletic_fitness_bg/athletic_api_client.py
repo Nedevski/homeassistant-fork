@@ -63,8 +63,6 @@ class AthleticApiClient:
             if data.get("expirationDate"):
                 # Parse the ISO format datetime string
                 self._token_expiry = datetime.fromisoformat(data["expirationDate"])
-            else:
-                return data
         except aiohttp.ClientError as err:
             _LOGGER.error("Error connecting to Athletic Fitness BG API: %s", err)
             raise AthleticApiClientError("Connection error") from err

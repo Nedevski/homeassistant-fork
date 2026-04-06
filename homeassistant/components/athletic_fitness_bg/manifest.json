@@ -1,11 +1,11 @@
 {
   "domain": "athletic_fitness_bg",
   "name": "Athletic Fitness BG",
-  "codeowners": ["@nedevski"],
+  "codeowners": ["@Nedevski"],
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/athletic_fitness_bg",
-  "integration_type": "hub",
+  "documentation": "https://github.com/nedevski/hass_athletic_fitness_bulgaria",
   "iot_class": "cloud_polling",
-  "quality_scale": "bronze",
-  "requirements": []
+  "issue_tracker": "https://github.com/nedevski/hass_athletic_fitness_bulgaria/issues",
+  "requirements": [],
+  "version": "1.0.0"
 }

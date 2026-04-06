@@ -21,24 +21,5 @@
         }
       }
     }
-  },
-  "entity": {
-    "sensor": {
-      "active_minutes": {
-        "name": "Active minutes"
-      },
-      "calories_burned": {
-        "name": "Calories burned"
-      },
-      "heart_rate_avg": {
-        "name": "Average heart rate"
-      },
-      "sleep_hours": {
-        "name": "Sleep hours"
-      },
-      "steps_today": {
-        "name": "Steps today"
-      }
-    }
   }
 }
