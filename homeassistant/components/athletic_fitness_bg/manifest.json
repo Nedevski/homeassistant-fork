@@ -1,0 +1,11 @@
+{
+  "domain": "athletic_fitness_bg",
+  "name": "Athletic Fitness BG",
+  "codeowners": ["@nedevski"],
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/athletic_fitness_bg",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "quality_scale": "bronze",
+  "requirements": []
+}

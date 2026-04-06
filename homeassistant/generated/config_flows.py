@@ -77,6 +77,7 @@ FLOWS = {
         "aseko_pool_live",
         "asuswrt",
         "atag",
+        "athletic_fitness_bg",
         "august",
         "aurora",
         "aurora_abb_powerone",

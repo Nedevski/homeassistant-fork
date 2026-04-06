@@ -171,6 +171,8 @@ build.json @home-assistant/supervisor
 /homeassistant/components/atag/ @MatsNL
 /tests/components/atag/ @MatsNL
 /homeassistant/components/aten_pe/ @mtdcr
+/homeassistant/components/athletic_fitness_bg/ @nedevski
+/tests/components/athletic_fitness_bg/ @nedevski
 /homeassistant/components/atome/ @baqs
 /homeassistant/components/august/ @bdraco
 /tests/components/august/ @bdraco
