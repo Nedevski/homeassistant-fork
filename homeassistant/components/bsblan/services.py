@@ -1,7 +1,5 @@
 """Support for BSB-LAN services."""
 
-from __future__ import annotations
-
 from datetime import time
 import logging
 from typing import TYPE_CHECKING
@@ -30,10 +28,6 @@ ATTR_THURSDAY_SLOTS = "thursday_slots"
 ATTR_FRIDAY_SLOTS = "friday_slots"
 ATTR_SATURDAY_SLOTS = "saturday_slots"
 ATTR_SUNDAY_SLOTS = "sunday_slots"
-
-# Service names
-SERVICE_SET_HOT_WATER_SCHEDULE = "set_hot_water_schedule"
-SERVICE_SYNC_TIME = "sync_time"
 
 
 # Schema for a single time slot
@@ -260,14 +254,14 @@ def async_setup_services(hass: HomeAssistant) -> None:
     """Register the BSB-LAN services."""
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_HOT_WATER_SCHEDULE,
+        "set_hot_water_schedule",
         set_hot_water_schedule,
         schema=SERVICE_SET_HOT_WATER_SCHEDULE_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SYNC_TIME,
+        "sync_time",
         async_sync_time,
         schema=SYNC_TIME_SCHEMA,
     )
