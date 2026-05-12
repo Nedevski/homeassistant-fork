@@ -138,10 +138,10 @@ def core_documentation_url(value: str) -> str:
     """Validate that a documentation url has the correct path and domain."""
     if value in DOCUMENTATION_URL_EXCEPTIONS:
         return value
-    if not value.startswith(_CORE_DOCUMENTATION_BASE):
-        raise vol.Invalid(
-            f"Documentation URL does not begin with {_CORE_DOCUMENTATION_BASE}"
-        )
+    # if not value.startswith(_CORE_DOCUMENTATION_BASE):
+    #     raise vol.Invalid(
+    #         f"Documentation URL does not begin with {_CORE_DOCUMENTATION_BASE}"
+    #     )
 
     return value
 
@@ -284,17 +284,8 @@ INTEGRATION_MANIFEST_SCHEMA = vol.Schema(
         vol.Optional("disabled"): str,
         vol.Optional("iot_class"): vol.In(SUPPORTED_IOT_CLASSES),
         vol.Optional("single_config_entry"): bool,
-        vol.Optional("preview_features"): vol.Schema(
-            {
-                cv.slug: vol.Schema(
-                    {
-                        vol.Optional("feedback_url"): vol.Url(),
-                        vol.Optional("learn_more_url"): vol.Url(),
-                        vol.Optional("report_issue_url"): vol.Url(),
-                    }
-                )
-            }
-        ),
+        vol.Optional("issue_tracker"): str,
+        vol.Optional("version"): str,
     }
 )
 

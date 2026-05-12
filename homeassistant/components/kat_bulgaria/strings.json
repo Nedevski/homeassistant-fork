@@ -1,0 +1,92 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Device is already configured.",
+      "cannot_connect": "KAT's website is down, try again.",
+      "invalid_config": "Invalid config - EGN or identification number.",
+      "reconfigure_successful": "Reconfiguration successful.",
+      "unknown": "Unknown error, check the logs for more details."
+    },
+    "error": {
+      "cannot_connect": "KAT's website is down, try again.",
+      "invalid_config": "Invalid EGN or identification number.",
+      "invalid_config_car_plate_number": "Invalid car plate number. Use only English capital letters or numbers, no intervals.",
+      "unknown": "Unknown error, check the logs for more details."
+    },
+    "step": {
+      "business": {
+        "data": {
+          "business_bulstat": "BULSTAT",
+          "document_number": "Government ID number",
+          "egn": "Unified Civil Number (EGN)",
+          "person_name": "Person name"
+        },
+        "title": "Configuration - Business"
+      },
+      "individual": {
+        "data": {
+          "document_number": "Identification Number",
+          "document_type": "Identification Type",
+          "egn": "Unified Civil Number (EGN)",
+          "person_name": "Person name"
+        },
+        "title": "Configuration - Individual"
+      },
+      "reconfigure": {
+        "data": {
+          "document_number": "Identification Number",
+          "document_type": "Identification Type"
+        },
+        "title": "Update identification information"
+      },
+      "user": {
+        "menu_options": {
+          "business": "Business",
+          "individual": "Individual"
+        },
+        "title": "Configuration"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "has_non_served_tickets": {
+        "name": "Has Non-Served Tickets",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      },
+      "has_tickets": {
+        "name": "Has Tickets",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      }
+    },
+    "sensor": {
+      "non_served_ticket_count": {
+        "name": "Count Non-Served"
+      },
+      "served_ticket_count": {
+        "name": "Count Served"
+      },
+      "total_ticket_amount_owed": {
+        "name": "Total EUR Owed"
+      },
+      "total_ticket_count": {
+        "name": "Count Total"
+      }
+    }
+  },
+  "selector": {
+    "document_type": {
+      "options": {
+        "car_plate_num": "Car Plate Number",
+        "driving_license": "Driving License",
+        "national_id": "National ID"
+      }
+    }
+  }
+}

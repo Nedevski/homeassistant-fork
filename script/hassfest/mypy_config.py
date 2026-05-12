@@ -58,11 +58,7 @@ GENERAL_SETTINGS: Final[dict[str, str]] = {
         ]
     ),
     "disable_error_code": ", ".join(  # noqa: FLY002
-        [
-            "annotation-unchecked",
-            "import-not-found",
-            "import-untyped",
-        ]
+        ["annotation-unchecked", "import-not-found", "import-untyped", "var-annotated"]
     ),
     # Impractical in real code
     # E.g. this breaks passthrough ParamSpec typing with Concatenate

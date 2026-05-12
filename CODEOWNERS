@@ -178,6 +178,8 @@ CLAUDE.md @home-assistant/core
 /homeassistant/components/atag/ @MatsNL
 /tests/components/atag/ @MatsNL
 /homeassistant/components/aten_pe/ @mtdcr
+/homeassistant/components/athletic_fitness_bg/ @Nedevski
+/tests/components/athletic_fitness_bg/ @Nedevski
 /homeassistant/components/atome/ @baqs
 /homeassistant/components/august/ @bdraco
 /tests/components/august/ @bdraco
@@ -917,6 +919,8 @@ CLAUDE.md @home-assistant/core
 /homeassistant/components/kaiterra/ @Michsior14
 /homeassistant/components/kaleidescape/ @SteveEasley
 /tests/components/kaleidescape/ @SteveEasley
+/homeassistant/components/kat_bulgaria/ @Nedevski
+/tests/components/kat_bulgaria/ @Nedevski
 /homeassistant/components/keba/ @dannerph
 /homeassistant/components/keenetic_ndms2/ @foxel
 /tests/components/keenetic_ndms2/ @foxel
@@ -1865,6 +1869,7 @@ CLAUDE.md @home-assistant/core
 /homeassistant/components/unifiled/ @florisvdk
 /homeassistant/components/unifiprotect/ @RaHehl
 /tests/components/unifiprotect/ @RaHehl
+/homeassistant/components/unraid/ @Nedevski
 /homeassistant/components/upb/ @gwww
 /tests/components/upb/ @gwww
 /homeassistant/components/upc_connect/ @pvizeli @fabaff

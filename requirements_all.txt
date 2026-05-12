@@ -1395,6 +1395,9 @@ justnimbus==0.7.4
 # homeassistant.components.kaiterra
 kaiterra-async-client==1.1.0
 
+# homeassistant.components.kat_bulgaria
+kat_bulgaria==3.2.0
+
 # homeassistant.components.keba
 keba-kecontact==1.3.0
 
@@ -2056,6 +2059,7 @@ pycoolmasternet-async==0.2.4
 pycountry==24.6.1
 
 # homeassistant.components.microsoft
+# homeassistant.components.microsoft_tts
 pycsspeechtts==1.0.8
 
 # homeassistant.components.cync
